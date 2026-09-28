@@ -25,6 +25,10 @@ async function main() {
   }
   console.log('✅ System Permissions seeded.');
 
+  // Fetch all permissions into memory
+  const allPermissions = await prisma.permission.findMany();
+  const permCodeToIdMap = new Map(allPermissions.map((p) => [p.code, p.id]));
+
   // 2. Create Global System Roles
   const rolesMap: Record<string, string> = {};
   for (const roleName of ['Owner', 'Admin', 'Sales Manager', 'Sales Representative']) {
@@ -46,23 +50,19 @@ async function main() {
 
     // Attach permissions to Role
     const permissionCodes = DEFAULT_ROLE_PERMISSIONS[roleName] || [];
-    for (const code of permissionCodes) {
-      const perm = await prisma.permission.findUnique({ where: { code } });
-      if (perm) {
-        await prisma.rolePermission.upsert({
-          where: {
-            roleId_permissionId: {
-              roleId: role.id,
-              permissionId: perm.id,
-            },
-          },
-          update: {},
-          create: {
-            roleId: role.id,
-            permissionId: perm.id,
-          },
-        });
-      }
+    const rolePermData = permissionCodes
+      .map((code) => permCodeToIdMap.get(code))
+      .filter((permId): permId is string => Boolean(permId))
+      .map((permissionId) => ({
+        roleId: role.id,
+        permissionId,
+      }));
+
+    if (rolePermData.length > 0) {
+      await prisma.rolePermission.createMany({
+        data: rolePermData,
+        skipDuplicates: true,
+      });
     }
   }
   console.log('✅ System Roles & RolePermissions seeded.');
