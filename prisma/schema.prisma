@@ -1,0 +1,779 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ============================================================================
+// PHASE 1 MODELS — PRESERVED INTACT
+// ============================================================================
+
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  logoUrl     String?
+  industry    String?
+  phone       String?
+  email       String?
+  website     String?
+  address     String?
+  country     String?
+  timezone    String   @default("UTC")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Phase 1 relations
+  memberships           Membership[]
+  roles                 Role[]
+  leads                 Lead[]
+  companies             Company[]
+  contacts              Contact[]
+  pipelines             Pipeline[]
+  pipelineStages        PipelineStage[]
+  deals                 Deal[]
+  activities            Activity[]
+  tasks                 Task[]
+  businessSearches      BusinessSearch[]
+  businessSearchResults BusinessSearchResult[]
+  auditLogs             AuditLog[]
+  notifications         Notification[]
+
+  // Phase 2 relations — SaaS & Billing
+  subscription          Subscription?
+  usageRecords          UsageRecord[]
+  billingEvents         BillingEvent[]
+  organizationModules   OrganizationModule[]
+
+  // Phase 2 relations — AI
+  aiScoreRecords        AiScoreRecord[]
+  aiSummaries           AiSummary[]
+  aiConversations       AiConversation[]
+
+  // Phase 2 relations — Communications
+  communicationConversations CommunicationConversation[]
+  communicationMessages      CommunicationMessage[]
+  communicationConsents      CommunicationConsent[]
+
+  // Phase 2 relations — Workflows & Sequences
+  workflows             Workflow[]
+  workflowExecutions    WorkflowExecution[]
+  sequences             Sequence[]
+  sequenceEnrollments   SequenceEnrollment[]
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  image        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Phase 1 relations
+  memberships       Membership[]
+  assignedLeads     Lead[]                 @relation("LeadAssignee")
+  assignedContacts  Contact[]              @relation("ContactAssignee")
+  assignedDeals     Deal[]                 @relation("DealOwner")
+  assignedTasks     Task[]                 @relation("TaskAssignee")
+  activitiesCreated Activity[]             @relation("ActivityCreator")
+  searchesCreated   BusinessSearch[]       @relation("SearchCreator")
+  auditLogs         AuditLog[]
+  notifications     Notification[]
+
+  // Phase 2 relations
+  aiConversations       AiConversation[]
+  sentMessages          CommunicationMessage[] @relation("MessageSender")
+  createdWorkflows      Workflow[]             @relation("WorkflowCreator")
+  createdSequences      Sequence[]             @relation("SequenceCreator")
+}
+
+model Membership {
+  id             String   @id @default(cuid())
+  userId         String
+  organizationId String
+  roleId         String
+  status         String   @default("ACTIVE")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  role         Role         @relation(fields: [roleId], references: [id])
+
+  @@unique([userId, organizationId])
+  @@index([organizationId])
+  @@index([userId])
+}
+
+model Role {
+  id             String   @id @default(cuid())
+  organizationId String?
+  name           String
+  description    String?
+  isSystem       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization    Organization?    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  memberships     Membership[]
+  rolePermissions RolePermission[]
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  description String?
+  category    String
+
+  rolePermissions RolePermission[]
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+model Lead {
+  id             String   @id @default(cuid())
+  organizationId String
+  firstName      String
+  lastName       String
+  title          String?
+  email          String?
+  phone          String?
+  companyName    String?
+  status         String   @default("NEW")
+  priority       String   @default("MEDIUM")
+  source         String   @default("MANUAL")
+  score          Int      @default(0)
+  ownerId        String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  owner        User?        @relation("LeadAssignee", fields: [ownerId], references: [id])
+  activities   Activity[]
+  tasks        Task[]
+
+  // Phase 2 relations
+  communicationConversations CommunicationConversation[] @relation("ConversationLead")
+  sequenceEnrollments        SequenceEnrollment[]        @relation("EnrollmentLead")
+
+  @@index([organizationId])
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
+}
+
+model Company {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  domain         String?
+  industry       String?
+  phone          String?
+  address        String?
+  website        String?
+  providerId     String?
+  rating         Float?
+  reviewCount    Int?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  contacts     Contact[]
+  deals        Deal[]
+  activities   Activity[]
+  tasks        Task[]
+
+  // Phase 2 relations
+  communicationConversations CommunicationConversation[] @relation("ConversationCompany")
+
+  @@index([organizationId])
+}
+
+model Contact {
+  id             String   @id @default(cuid())
+  organizationId String
+  companyId      String?
+  firstName      String
+  lastName       String
+  email          String?
+  phone          String?
+  title          String?
+  ownerId        String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  company      Company?     @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  owner        User?        @relation("ContactAssignee", fields: [ownerId], references: [id])
+  deals        Deal[]
+  activities   Activity[]
+  tasks        Task[]
+
+  // Phase 2 relations
+  communicationConversations CommunicationConversation[] @relation("ConversationContact")
+  communicationConsents      CommunicationConsent[]      @relation("ConsentContact")
+  sequenceEnrollments        SequenceEnrollment[]        @relation("EnrollmentContact")
+
+  @@index([organizationId])
+  @@index([organizationId, companyId])
+}
+
+model Pipeline {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  isDefault      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  stages       PipelineStage[]
+  deals        Deal[]
+}
+
+model PipelineStage {
+  id             String   @id @default(cuid())
+  pipelineId     String
+  organizationId String
+  name           String
+  order          Int
+  probability    Int      @default(50)
+  color          String   @default("#0c8de4")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  pipeline     Pipeline     @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  deals        Deal[]
+}
+
+model Deal {
+  id                String    @id @default(cuid())
+  organizationId    String
+  pipelineId        String
+  stageId           String
+  companyId         String?
+  contactId         String?
+  name              String
+  amount            Float     @default(0)
+  expectedCloseDate DateTime?
+  status            String    @default("OPEN")
+  ownerId           String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  pipeline     Pipeline      @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  stage        PipelineStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  company      Company?      @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  contact      Contact?      @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  owner        User?         @relation("DealOwner", fields: [ownerId], references: [id])
+  activities   Activity[]
+  tasks        Task[]
+
+  // Phase 2 relations
+  communicationConversations CommunicationConversation[] @relation("ConversationDeal")
+
+  @@index([organizationId])
+  @@index([organizationId, status])
+  @@index([organizationId, pipelineId])
+}
+
+model Activity {
+  id             String   @id @default(cuid())
+  organizationId String
+  type           String
+  title          String
+  description    String?
+  leadId         String?
+  contactId      String?
+  companyId      String?
+  dealId         String?
+  createdById    String
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User         @relation("ActivityCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  lead         Lead?        @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  contact      Contact?     @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  company      Company?     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  deal         Deal?        @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([organizationId, createdAt])
+}
+
+model Task {
+  id             String    @id @default(cuid())
+  organizationId String
+  title          String
+  description    String?
+  dueDate        DateTime?
+  priority       String    @default("MEDIUM")
+  status         String    @default("PENDING")
+  assignedToId   String?
+  leadId         String?
+  contactId      String?
+  companyId      String?
+  dealId         String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  assignedTo   User?        @relation("TaskAssignee", fields: [assignedToId], references: [id])
+  lead         Lead?        @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  contact      Contact?     @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  company      Company?     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  deal         Deal?        @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([organizationId, status])
+}
+
+model BusinessSearch {
+  id             String   @id @default(cuid())
+  organizationId String
+  query          String
+  category       String?
+  location       String?
+  createdById    String
+  createdAt      DateTime @default(now())
+
+  organization Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User                   @relation("SearchCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  results      BusinessSearchResult[]
+}
+
+model BusinessSearchResult {
+  id             String    @id @default(cuid())
+  searchId       String
+  organizationId String
+  providerId     String
+  name           String
+  category       String?
+  phone          String?
+  address        String?
+  website        String?
+  rating         Float?
+  reviewCount    Int?
+  importedAt     DateTime?
+  isImported     Boolean   @default(false)
+
+  search       BusinessSearch @relation(fields: [searchId], references: [id], onDelete: Cascade)
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String
+  action         String
+  entity         String
+  entityId       String?
+  metadata       String?
+  ipAddress      String?
+  timestamp      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([organizationId, timestamp])
+  @@index([userId])
+}
+
+model Notification {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String
+  title          String
+  message        String
+  link           String?
+  isRead         Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, userId])
+  @@index([userId, isRead])
+}
+
+// ============================================================================
+// PHASE 2 MODELS — SAAS & BILLING
+// ============================================================================
+
+model Plan {
+  id          String   @id @default(cuid())
+  name        String
+  tier        Int      @default(0)
+  description String?
+  isDefault   Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  entitlements  PlanEntitlement[]
+  subscriptions Subscription[]
+}
+
+model PlanEntitlement {
+  id         String   @id @default(cuid())
+  planId     String
+  moduleCode String
+  usageLimit Int?
+  createdAt  DateTime @default(now())
+
+  plan Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@unique([planId, moduleCode])
+}
+
+model Subscription {
+  id                 String    @id @default(cuid())
+  organizationId     String    @unique
+  planId             String
+  status             String    @default("ACTIVE")
+  externalId         String?
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  cancelledAt        DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plan         Plan         @relation(fields: [planId], references: [id])
+
+  @@index([organizationId])
+}
+
+model UsageRecord {
+  id             String   @id @default(cuid())
+  organizationId String
+  resourceType   String
+  quantity       Int      @default(1)
+  periodStart    DateTime
+  periodEnd      DateTime
+  metadata       String?
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([organizationId, resourceType, createdAt])
+}
+
+model BillingEvent {
+  id             String   @id @default(cuid())
+  organizationId String
+  type           String
+  metadata       String?
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model OrganizationModule {
+  id             String   @id @default(cuid())
+  organizationId String
+  moduleCode     String
+  enabled        Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, moduleCode])
+}
+
+// ============================================================================
+// PHASE 2 MODELS — AI
+// ============================================================================
+
+model AiScoreRecord {
+  id             String   @id @default(cuid())
+  organizationId String
+  entityType     String
+  entityId       String
+  score          Int
+  explanation    String?
+  provider       String
+  model          String
+  scoringVersion String
+  generatedAt    DateTime
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([organizationId, entityType, entityId])
+}
+
+model AiSummary {
+  id             String   @id @default(cuid())
+  organizationId String
+  entityType     String
+  entityId       String
+  summaryType    String
+  content        String
+  provider       String
+  model          String
+  generatedAt    DateTime
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+}
+
+model AiConversation {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String
+  title          String?
+  contextType    String?
+  contextId      String?
+  status         String   @default("ACTIVE")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages     AiMessage[]
+
+  @@index([organizationId, userId])
+}
+
+model AiMessage {
+  id             String    @id @default(cuid())
+  conversationId String
+  role           String
+  content        String
+  provider       String?
+  model          String?
+  generatedAt    DateTime?
+  createdAt      DateTime  @default(now())
+
+  conversation AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
+
+// ============================================================================
+// PHASE 2 MODELS — UNIFIED COMMUNICATIONS
+// ============================================================================
+
+model CommunicationConversation {
+  id               String    @id @default(cuid())
+  organizationId   String
+  channel          String
+  status           String    @default("OPEN")
+  subject          String?
+  leadId           String?
+  contactId        String?
+  companyId        String?
+  dealId           String?
+  externalThreadId String?
+  lastMessageAt    DateTime?
+  unreadCount      Int       @default(0)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  lead         Lead?        @relation("ConversationLead", fields: [leadId], references: [id], onDelete: SetNull)
+  contact      Contact?     @relation("ConversationContact", fields: [contactId], references: [id], onDelete: SetNull)
+  company      Company?     @relation("ConversationCompany", fields: [companyId], references: [id], onDelete: SetNull)
+  deal         Deal?        @relation("ConversationDeal", fields: [dealId], references: [id], onDelete: SetNull)
+  messages     CommunicationMessage[]
+
+  @@index([organizationId])
+  @@index([organizationId, channel])
+}
+
+model CommunicationMessage {
+  id                String    @id @default(cuid())
+  conversationId    String
+  organizationId    String
+  direction         String
+  senderType        String
+  senderUserId      String?
+  recipientAddress  String?
+  senderAddress     String?
+  content           String
+  contentType       String    @default("TEXT")
+  status            String    @default("PENDING")
+  externalMessageId String?
+  provider          String?
+  failureReason     String?
+  sentAt            DateTime?
+  deliveredAt       DateTime?
+  readAt            DateTime?
+  createdAt         DateTime  @default(now())
+
+  conversation CommunicationConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  organization Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  senderUser   User?                     @relation("MessageSender", fields: [senderUserId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([conversationId])
+  @@index([externalMessageId])
+}
+
+model CommunicationConsent {
+  id             String    @id @default(cuid())
+  organizationId String
+  contactId      String?
+  leadId         String?
+  channel        String
+  status         String    @default("GRANTED")
+  grantedAt      DateTime?
+  revokedAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  contact      Contact?     @relation("ConsentContact", fields: [contactId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+}
+
+// ============================================================================
+// PHASE 2 MODELS — WORKFLOWS (Event-Driven Automation)
+// ============================================================================
+
+model Workflow {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  description    String?
+  triggerType     String
+  triggerConfig  String?
+  status         String   @default("DRAFT")
+  createdById    String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User               @relation("WorkflowCreator", fields: [createdById], references: [id])
+  conditions   WorkflowCondition[]
+  actions      WorkflowAction[]
+  executions   WorkflowExecution[]
+
+  @@index([organizationId])
+  @@index([organizationId, status])
+}
+
+model WorkflowCondition {
+  id         String @id @default(cuid())
+  workflowId String
+  field      String
+  operator   String
+  value      String
+  order      Int
+
+  workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+}
+
+model WorkflowAction {
+  id           String   @id @default(cuid())
+  workflowId   String
+  type         String
+  config       String?
+  order        Int
+  delayMinutes Int?
+  createdAt    DateTime @default(now())
+
+  workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+}
+
+model WorkflowExecution {
+  id                 String    @id @default(cuid())
+  organizationId     String
+  workflowId         String
+  triggerEntityType  String?
+  triggerEntityId    String?
+  status             String    @default("RUNNING")
+  currentActionOrder Int       @default(0)
+  startedAt          DateTime
+  completedAt        DateTime?
+  failureReason      String?
+  metadata           String?
+  createdAt          DateTime  @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workflow     Workflow     @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([workflowId])
+}
+
+// ============================================================================
+// PHASE 2 MODELS — SEQUENCES (Ordered Follow-Up Series)
+// ============================================================================
+
+model Sequence {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  description    String?
+  status         String   @default("DRAFT")
+  maxEnrollments Int?
+  createdById    String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User                 @relation("SequenceCreator", fields: [createdById], references: [id])
+  steps        SequenceStep[]
+  enrollments  SequenceEnrollment[]
+
+  @@index([organizationId])
+}
+
+model SequenceStep {
+  id           String   @id @default(cuid())
+  sequenceId   String
+  type         String
+  config       String?
+  order        Int
+  delayMinutes Int?
+  createdAt    DateTime @default(now())
+
+  sequence Sequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+}
+
+model SequenceEnrollment {
+  id               String    @id @default(cuid())
+  organizationId   String
+  sequenceId       String
+  leadId           String?
+  contactId        String?
+  status           String    @default("ACTIVE")
+  currentStepOrder Int       @default(0)
+  enrolledAt       DateTime
+  completedAt      DateTime?
+  cancelledAt      DateTime?
+  cancelReason     String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sequence     Sequence     @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+  lead         Lead?        @relation("EnrollmentLead", fields: [leadId], references: [id], onDelete: SetNull)
+  contact      Contact?     @relation("EnrollmentContact", fields: [contactId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([sequenceId])
+  @@index([organizationId, status])
+}
