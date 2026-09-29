@@ -133,6 +133,7 @@ export default function LeadsPage() {
       const data = await res.json();
       if (data.success) {
         fetchLeads();
+        router.refresh();
       } else {
         alert(data.error || 'Failed to update status');
       }
