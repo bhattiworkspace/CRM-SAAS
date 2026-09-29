@@ -2,26 +2,23 @@
 
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
-import { getTenantSession } from '@/lib/auth';
+import { requireTenantPermission } from '@/lib/auth';
 import { PERMISSIONS } from '@/lib/permissions';
 import { recordAuditLog } from '@/lib/audit';
 
 export async function updateLeadStatusAction(leadId: string, status: string) {
-  const context = await getTenantSession();
+  const context = await requireTenantPermission(PERMISSIONS.LEADS_UPDATE);
   if (!context) throw new Error('Unauthorized');
-
-  // Verify permission
-  const hasPermission = context.user.memberships.some(
-    m => m.organizationId === context.organization.id && 
-         (m.role === 'OWNER' || m.role === 'ADMIN' || m.role === 'MANAGER' || m.role === 'MEMBER') // basic check, or we can just rely on the API logic
-  );
-  if (!hasPermission) throw new Error('Unauthorized');
 
   const existing = await prisma.lead.findFirst({
     where: { id: leadId, organizationId: context.organization.id },
   });
 
   if (!existing) throw new Error('Lead not found');
+
+  if (context.role.name === 'Sales Representative' && existing.ownerId !== context.user.id) {
+    throw new Error('Unauthorized to update this lead');
+  }
 
   const updatedLead = await prisma.lead.update({
     where: { id: leadId },
