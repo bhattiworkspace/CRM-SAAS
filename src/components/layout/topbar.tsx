@@ -6,6 +6,8 @@ import { OrgSwitcher, OrganizationOption } from './org-switcher';
 import { UserMenu } from './user-menu';
 import { useRouter } from 'next/navigation';
 
+import { ThemeToggle } from './theme-toggle';
+
 interface TopbarProps {
   onToggleMobileMenu: () => void;
   context: {
@@ -67,7 +69,7 @@ export function Topbar({ onToggleMobileMenu, context, availableOrgs }: TopbarPro
   };
 
   return (
-    <header className="h-16 bg-white border-b border-slate-200 px-4 flex items-center justify-between sticky top-0 z-20 shadow-2xs">
+    <header className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 flex items-center justify-between sticky top-0 z-20 shadow-2xs">
       <div className="flex items-center gap-3">
         {/* Mobile Menu Trigger */}
         <button
@@ -106,6 +108,8 @@ export function Topbar({ onToggleMobileMenu, context, availableOrgs }: TopbarPro
 
       {/* Right Controls */}
       <div className="flex items-center gap-3">
+        <ThemeToggle />
+        
         {/* Notification Bell */}
         <div className="relative">
           <button

@@ -21,6 +21,15 @@ import {
   Building2,
   Sliders,
   CheckCircle2,
+  LayoutDashboard,
+  UserPlus,
+  Users,
+  KanbanSquare,
+  Activity,
+  CheckSquare,
+  MessageSquare,
+  GitBranch,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface ModuleInfo {
@@ -32,14 +41,20 @@ interface ModuleInfo {
 }
 
 const MODULE_DEFINITIONS: ModuleInfo[] = [
-  { code: 'AI', name: 'AI Sales Assistant', category: 'Intelligence', description: 'AI lead scoring, email drafting, deal summaries, and intelligent insights', icon: <Sparkles className="h-5 w-5" /> },
-  { code: 'EMAIL', name: 'Unified Email Suite', category: 'Communications', description: 'Send, track, and sync customer emails directly inside CRM timeline', icon: <Mail className="h-5 w-5" /> },
-  { code: 'WHATSAPP', name: 'WhatsApp Business', category: 'Communications', description: 'Direct WhatsApp integration for customer messaging and instant alerts', icon: <MessageCircle className="h-5 w-5" /> },
-  { code: 'SMS', name: 'SMS Gateway', category: 'Communications', description: 'SMS follow-ups, broadcast messaging, and automated text reminders', icon: <Phone className="h-5 w-5" /> },
-  { code: 'AUTOMATION', name: 'Workflow & Sequences', category: 'Automation', description: 'Event-driven triggers, multi-step drip campaigns, and lead routing', icon: <Zap className="h-5 w-5" /> },
-  { code: 'ENRICHMENT', name: 'Data Enrichment', category: 'Data & Growth', description: 'Automatically enrich company domain and contact data from web sources', icon: <Database className="h-5 w-5" /> },
-  { code: 'ANALYTICS_ADVANCED', name: 'Advanced Reporting', category: 'Analytics', description: 'Sales forecasting, activity metrics, and custom executive dashboards', icon: <BarChart3 className="h-5 w-5" /> },
-  { code: 'BUSINESS_FINDER_PRO', name: 'Business Finder Pro', category: 'Data & Growth', description: 'Discover local B2B leads by location and industry with lead import', icon: <Search className="h-5 w-5" /> },
+  { code: 'DASHBOARD', name: 'Dashboard', category: 'Core', description: 'Main overview dashboard', icon: <LayoutDashboard className="h-5 w-5" /> },
+  { code: 'LEADS', name: 'Leads', category: 'Core', description: 'Manage potential prospects', icon: <UserPlus className="h-5 w-5" /> },
+  { code: 'CONTACTS', name: 'Contacts', category: 'Core', description: 'Manage contacts', icon: <Users className="h-5 w-5" /> },
+  { code: 'COMPANIES', name: 'Companies', category: 'Core', description: 'Manage B2B company accounts', icon: <Building2 className="h-5 w-5" /> },
+  { code: 'DEALS', name: 'Deals', category: 'Core', description: 'Pipeline and deals management', icon: <KanbanSquare className="h-5 w-5" /> },
+  { code: 'ACTIVITIES', name: 'Activities', category: 'Core', description: 'Track calls, meetings, and interactions', icon: <Activity className="h-5 w-5" /> },
+  { code: 'TASKS', name: 'Tasks', category: 'Core', description: 'Manage to-dos and follow-ups', icon: <CheckSquare className="h-5 w-5" /> },
+  { code: 'COMMUNICATIONS', name: 'Communications', category: 'Communications', description: 'Unified inbox for Email, SMS, WhatsApp', icon: <MessageSquare className="h-5 w-5" /> },
+  { code: 'SEQUENCES', name: 'Sequences', category: 'Automation', description: 'Multi-step email/SMS drip campaigns', icon: <GitBranch className="h-5 w-5" /> },
+  { code: 'AUTOMATION', name: 'Automations', category: 'Automation', description: 'Event-driven triggers and workflows', icon: <Zap className="h-5 w-5" /> },
+  { code: 'AI', name: 'AI Assistant', category: 'Intelligence', description: 'AI lead scoring and email drafting', icon: <Sparkles className="h-5 w-5" /> },
+  { code: 'BUSINESS_FINDER_PRO', name: 'Business Finder', category: 'Data & Growth', description: 'Discover local B2B leads', icon: <Search className="h-5 w-5" /> },
+  { code: 'REPORTS', name: 'Reports', category: 'Analytics', description: 'Sales forecasting and metrics', icon: <BarChart3 className="h-5 w-5" /> },
+  { code: 'AUDIT_LOGS', name: 'Audit Logs', category: 'System', description: 'System-wide audit trail and security logs', icon: <ShieldCheck className="h-5 w-5" /> },
 ];
 
 interface Organization {

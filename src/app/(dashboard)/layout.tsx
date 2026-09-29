@@ -27,8 +27,21 @@ export default async function DashboardLayout({ children }: { children: React.Re
     roleName: m.role.name,
   }));
 
+  const orgModules = await prisma.organizationModule.findMany({
+    where: { organizationId: context.organization.id }
+  });
+
+  // Default core modules to true if not present, else use their value
+  const activeModules = orgModules
+    .filter(m => m.enabled)
+    .map(m => m.moduleCode);
+
+  const disabledModules = orgModules
+    .filter(m => !m.enabled)
+    .map(m => m.moduleCode);
+
   return (
-    <AppShell context={context} availableOrgs={availableOrgs}>
+    <AppShell context={context} availableOrgs={availableOrgs} disabledModules={disabledModules}>
       {children}
     </AppShell>
   );

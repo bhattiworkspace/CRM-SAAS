@@ -13,10 +13,11 @@ interface AppShellProps {
     permissions: string[];
   };
   availableOrgs?: OrganizationOption[];
+  disabledModules?: string[];
   children: React.ReactNode;
 }
 
-export function AppShell({ context, availableOrgs, children }: AppShellProps) {
+export function AppShell({ context, availableOrgs, disabledModules = [], children }: AppShellProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
@@ -28,6 +29,7 @@ export function AppShell({ context, availableOrgs, children }: AppShellProps) {
           isCollapsed={isCollapsed}
           onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
           userPermissions={context.permissions}
+          disabledModules={disabledModules}
         />
       </div>
 
@@ -40,6 +42,7 @@ export function AppShell({ context, availableOrgs, children }: AppShellProps) {
               isCollapsed={false}
               onToggleCollapse={() => setIsMobileOpen(false)}
               userPermissions={context.permissions}
+              disabledModules={disabledModules}
             />
           </div>
         </div>

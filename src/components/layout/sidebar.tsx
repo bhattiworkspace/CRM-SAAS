@@ -30,9 +30,10 @@ interface SidebarProps {
   isCollapsed: boolean;
   onToggleCollapse: () => void;
   userPermissions?: string[];
+  disabledModules?: string[];
 }
 
-export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
+export function Sidebar({ isCollapsed, onToggleCollapse, disabledModules = [] }: SidebarProps) {
   const pathname = usePathname();
 
   type NavItem = {
@@ -41,29 +42,37 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
     icon?: React.ElementType;
     badge?: string;
     divider?: boolean;
+    moduleCode?: string;
   };
 
-  const navigationItems: NavItem[] = [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Leads', href: '/leads', icon: UserPlus },
-    { name: 'Contacts', href: '/contacts', icon: Users },
-    { name: 'Companies', href: '/companies', icon: Building2 },
-    { name: 'Deals', href: '/deals', icon: Briefcase },
-    { name: 'Activities', href: '/activities', icon: Activity },
-    { name: 'Tasks', href: '/tasks', icon: CheckSquare },
+  const rawNavigationItems: NavItem[] = [
+    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, moduleCode: 'DASHBOARD' },
+    { name: 'Leads', href: '/leads', icon: UserPlus, moduleCode: 'LEADS' },
+    { name: 'Contacts', href: '/contacts', icon: Users, moduleCode: 'CONTACTS' },
+    { name: 'Companies', href: '/companies', icon: Building2, moduleCode: 'COMPANIES' },
+    { name: 'Deals', href: '/deals', icon: Briefcase, moduleCode: 'DEALS' },
+    { name: 'Activities', href: '/activities', icon: Activity, moduleCode: 'ACTIVITIES' },
+    { name: 'Tasks', href: '/tasks', icon: CheckSquare, moduleCode: 'TASKS' },
     { divider: true },
-    { name: 'Communications', href: '/communications', icon: MessageSquare },
-    { name: 'Sequences', href: '/sequences', icon: GitBranch },
+    { name: 'Communications', href: '/communications', icon: MessageSquare, moduleCode: 'COMMUNICATIONS' },
+    { name: 'Sequences', href: '/sequences', icon: GitBranch, moduleCode: 'SEQUENCES' },
     { divider: true },
-    { name: 'Automations', href: '/workflows', icon: Zap },
-    { name: 'AI Assistant', href: '/ai', icon: Sparkles },
+    { name: 'Automations', href: '/workflows', icon: Zap, moduleCode: 'AUTOMATION' },
+    { name: 'AI Assistant', href: '/ai', icon: Sparkles, moduleCode: 'AI' },
     { divider: true },
-    { name: 'Business Finder', href: '/business-finder', icon: Search, badge: 'PRO' },
-    { name: 'Reports', href: '/reports', icon: BarChart3 },
+    { name: 'Business Finder', href: '/business-finder', icon: Search, badge: 'PRO', moduleCode: 'BUSINESS_FINDER_PRO' },
+    { name: 'Reports', href: '/reports', icon: BarChart3, moduleCode: 'REPORTS' },
     { divider: true },
-    { name: 'Settings', href: '/settings', icon: Settings },
-    { name: 'Audit Logs', href: '/audit-logs', icon: ShieldCheck },
-  ];
+    { name: 'Audit Logs', href: '/audit-logs', icon: ShieldCheck, moduleCode: 'AUDIT_LOGS' }
+  ].filter(item => !item.moduleCode || !disabledModules.includes(item.moduleCode));
+
+  // Clean up dividers (remove consecutive, leading, trailing)
+  const navigationItems = rawNavigationItems.filter((item, index, arr) => {
+    if (!item.divider) return true;
+    if (index === 0 || index === arr.length - 1) return false;
+    if (arr[index - 1].divider) return false;
+    return true;
+  });
 
   return (
     <aside
@@ -129,6 +138,23 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
           );
         })}
       </nav>
+
+      {/* Settings (Fixed at bottom) */}
+      <div className="px-2 py-3 border-t border-slate-800 space-y-1">
+        <Link
+          href="/settings"
+          className={clsx(
+            'flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors group relative',
+            pathname?.startsWith('/settings')
+              ? 'bg-brand-600 text-white font-semibold shadow-xs'
+              : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/80'
+          )}
+          title={isCollapsed ? 'Settings' : undefined}
+        >
+          <Settings className={clsx('h-4 w-4 shrink-0', pathname?.startsWith('/settings') ? 'text-white' : 'text-slate-400 group-hover:text-slate-200')} />
+          {!isCollapsed && <span className="truncate flex-1">Settings</span>}
+        </Link>
+      </div>
 
       {/* Sidebar Footer */}
       <div className="p-3 border-t border-slate-800 text-xs text-slate-500 text-center">

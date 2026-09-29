@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: 'class',
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -9,25 +10,25 @@ module.exports = {
     extend: {
       colors: {
         brand: {
-          50: '#f0f7ff',
-          100: '#e0effe',
-          200: '#bae0fd',
-          300: '#7cc8fc',
-          400: '#36a9f7',
-          500: '#0c8de4',
-          600: '#0270c1',
-          700: '#03599d',
-          800: '#074c81',
-          900: '#0c406c',
-          950: '#082847',
+          50: 'var(--brand-50)',
+          100: 'var(--brand-100)',
+          200: 'var(--brand-200)',
+          300: 'var(--brand-300)',
+          400: 'var(--brand-400)',
+          500: 'var(--brand-500)',
+          600: 'var(--brand-600)',
+          700: 'var(--brand-700)',
+          800: 'var(--brand-800)',
+          900: 'var(--brand-900)',
+          950: 'var(--brand-950)',
         },
         sidebar: {
-          bg: '#0f172a',
-          fg: '#94a3b8',
-          hover: '#1e293b',
-          active: '#334155',
-          textActive: '#f8fafc',
-          border: '#1e293b',
+          bg: 'var(--sidebar-bg)',
+          fg: 'var(--sidebar-fg)',
+          hover: 'var(--sidebar-hover)',
+          active: 'var(--sidebar-active)',
+          textActive: 'var(--sidebar-text-active)',
+          border: 'var(--sidebar-border)',
         }
       },
     },
