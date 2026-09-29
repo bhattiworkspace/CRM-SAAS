@@ -66,15 +66,51 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const validatedData = leadSchema.parse(body);
 
+    const { 
+      followUps, notes, address, city, businessType, dealDescription, 
+      leadDate, contactName, contactDesignation, contactMobileNo, 
+      ...leadData 
+    } = validatedData;
+
+    // We can store extra info in title or leave it out if we don't need it on the model
     const lead = await prisma.lead.create({
       data: {
-        ...validatedData,
+        ...leadData,
         organizationId: context.organization.id,
       },
       include: {
         owner: { select: { id: true, name: true, email: true } },
       },
     });
+
+    if (followUps && followUps.length > 0) {
+      const tasks = followUps.map((fu: any) => ({
+        organizationId: context.organization.id,
+        title: fu.title || 'Follow up',
+        description: fu.notes || '',
+        status: 'PENDING',
+        priority: 'HIGH',
+        dueDate: fu.date ? new Date(fu.date) : new Date(),
+        assignedToId: context.user.id,
+        leadId: lead.id,
+      }));
+      await prisma.task.createMany({ data: tasks });
+    }
+
+    if (notes) {
+      await prisma.task.create({
+        data: {
+          organizationId: context.organization.id,
+          title: 'Lead Notes',
+          description: notes,
+          status: 'COMPLETED',
+          priority: 'MEDIUM',
+          dueDate: new Date(),
+          assignedToId: context.user.id,
+          leadId: lead.id,
+        }
+      });
+    }
 
     await recordAuditLog({
       organizationId: context.organization.id,

@@ -7,11 +7,21 @@ export const leadSchema = z.object({
   email: z.string().email('Invalid email address').optional().or(z.literal('')),
   phone: z.string().optional().nullable(),
   companyName: z.string().optional().nullable(),
-  status: z.enum(['NEW', 'CONTACTED', 'QUALIFIED', 'UNQUALIFIED', 'CONVERTED']).default('NEW'),
+  status: z.enum(['NEW', 'CONTACTED', 'QUALIFIED', 'PROPOSAL', 'CLOSED_WON', 'CLOSED_LOST', 'UNQUALIFIED', 'CONVERTED']).default('NEW'),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).default('MEDIUM'),
   source: z.string().default('MANUAL'),
   ownerId: z.string().optional().nullable(),
   estimatedValue: z.number().min(0).optional().nullable(),
+  address: z.string().optional().nullable(),
+  city: z.string().optional().nullable(),
+  businessType: z.string().optional().nullable(),
+  dealDescription: z.string().optional().nullable(),
+  leadDate: z.string().optional().nullable(),
+  contactName: z.string().optional().nullable(),
+  contactDesignation: z.string().optional().nullable(),
+  contactMobileNo: z.string().optional().nullable(),
+  followUps: z.array(z.any()).optional(),
+  notes: z.string().optional().nullable(),
 });
 
 export const convertLeadSchema = z.object({
