@@ -9,18 +9,47 @@ import { recordAuditLog, AUDIT_ACTIONS } from '@/lib/audit';
 const moduleToggleSchema = z.object({
   moduleCode: z.string(),
   enabled: z.boolean(),
+  organizationId: z.string().optional(),
 });
 
 export async function GET(req: NextRequest) {
   try {
     const context = await requireTenantPermission(PERMISSIONS.MODULES_MANAGE);
-    const organizationId = context.organization.id;
+    const { searchParams } = new URL(req.url);
+    const targetOrgId = searchParams.get('organizationId') || context.organization.id;
 
-    const modules = await prisma.organizationModule.findMany({
-      where: { organizationId }
+    // Fetch subscription plan entitlements
+    const subscription = await prisma.subscription.findFirst({
+      where: { organizationId: targetOrgId, status: 'ACTIVE' },
+      include: {
+        plan: {
+          include: { entitlements: true }
+        }
+      }
     });
 
-    return NextResponse.json({ success: true, data: modules });
+    const planEntitlements = subscription?.plan?.entitlements || [];
+
+    // Fetch organization-specific overrides
+    const orgModules = await prisma.organizationModule.findMany({
+      where: { organizationId: targetOrgId }
+    });
+
+    // Also fetch list of all organizations if admin wants to manage other companies
+    const organizations = await prisma.organization.findMany({
+      select: { id: true, name: true, slug: true, industry: true }
+    });
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        organizationId: targetOrgId,
+        organizationName: context.organization.name,
+        planEntitlements,
+        organizationModules: orgModules,
+        allOrganizations: organizations,
+      }
+    });
   } catch (error) {
     if (error instanceof AppError) {
       return createErrorResponse(error);
@@ -32,7 +61,6 @@ export async function GET(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const context = await requireTenantPermission(PERMISSIONS.MODULES_MANAGE);
-    const organizationId = context.organization.id;
     const userId = context.user.id;
 
     const body = await req.json();
@@ -42,26 +70,11 @@ export async function PUT(req: NextRequest) {
       throw new AppError('Invalid request body', 400);
     }
 
-    const { moduleCode, enabled } = result.data;
+    const { moduleCode, enabled, organizationId: customOrgId } = result.data;
+    const organizationId = customOrgId || context.organization.id;
 
-    // Validate that the plan has the entitlement before enabling
-    if (enabled) {
-      const subscription = await prisma.subscription.findFirst({
-        where: { organizationId, status: 'ACTIVE' },
-        include: {
-          plan: {
-            include: { entitlements: true }
-          }
-        }
-      });
-
-      const planEntitled = subscription ? subscription.plan.entitlements.some((e) => e.moduleCode === moduleCode) : false;
-      if (!planEntitled) {
-        throw new AppError('Your plan does not support this module. Please upgrade to enable it.', 403);
-      }
-    }
-
-    const module = await prisma.organizationModule.upsert({
+    // Update or create the OrganizationModule override
+    const moduleRecord = await prisma.organizationModule.upsert({
       where: { organizationId_moduleCode: { organizationId, moduleCode } },
       update: { enabled },
       create: { organizationId, moduleCode, enabled }
@@ -72,11 +85,11 @@ export async function PUT(req: NextRequest) {
       userId,
       action: enabled ? AUDIT_ACTIONS.MODULE_ENABLED : AUDIT_ACTIONS.MODULE_DISABLED,
       entity: 'OrganizationModule',
-      entityId: module.id,
-      metadata: { moduleCode }
+      entityId: moduleRecord.id,
+      metadata: { moduleCode, enabled }
     });
 
-    return NextResponse.json({ success: true, data: module });
+    return NextResponse.json({ success: true, data: moduleRecord });
   } catch (error) {
     if (error instanceof AppError) {
       return createErrorResponse(error);

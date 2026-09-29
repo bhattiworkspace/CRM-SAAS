@@ -123,6 +123,12 @@ export default function SettingsPage() {
         >
           <Users className="h-3.5 w-3.5" /> Team Members & Roles
         </button>
+        <a
+          href="/settings/modules"
+          className="px-4 py-1.5 text-xs font-semibold rounded-md transition-colors flex items-center gap-2 bg-slate-100 text-slate-700 hover:bg-slate-200 ml-auto border border-slate-300"
+        >
+          <ShieldCheck className="h-3.5 w-3.5 text-brand-600" /> Manage Module Controls & Toggles &rarr;
+        </a>
       </div>
 
       {loading ? (

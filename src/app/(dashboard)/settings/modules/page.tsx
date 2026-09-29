@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Select } from '@/components/ui/select';
 import {
   Sparkles,
   Mail,
@@ -17,161 +18,294 @@ import {
   X,
   Loader2,
   AlertCircle,
+  Building2,
+  Sliders,
+  CheckCircle2,
 } from 'lucide-react';
 
 interface ModuleInfo {
   code: string;
   name: string;
   description: string;
+  category: string;
   icon: React.ReactNode;
 }
 
 const MODULE_DEFINITIONS: ModuleInfo[] = [
-  { code: 'AI', name: 'AI Assistant', description: 'AI-powered lead scoring, summaries, and sales assistant', icon: <Sparkles className="h-5 w-5" /> },
-  { code: 'EMAIL', name: 'Email Integration', description: 'Send and receive emails within the CRM', icon: <Mail className="h-5 w-5" /> },
-  { code: 'WHATSAPP', name: 'WhatsApp', description: 'WhatsApp messaging integration for sales outreach', icon: <MessageCircle className="h-5 w-5" /> },
-  { code: 'SMS', name: 'SMS Messaging', description: 'SMS communication for follow-ups and notifications', icon: <Phone className="h-5 w-5" /> },
-  { code: 'AUTOMATION', name: 'Automation', description: 'Workflow automation and sales sequences', icon: <Zap className="h-5 w-5" /> },
-  { code: 'ENRICHMENT', name: 'Data Enrichment', description: 'Enrich company and contact data from external sources', icon: <Database className="h-5 w-5" /> },
-  { code: 'ANALYTICS_ADVANCED', name: 'Advanced Analytics', description: 'Sales forecasting and advanced reporting dashboards', icon: <BarChart3 className="h-5 w-5" /> },
-  { code: 'BUSINESS_FINDER_PRO', name: 'Business Finder Pro', description: 'Enhanced business discovery with expanded search limits', icon: <Search className="h-5 w-5" /> },
+  { code: 'AI', name: 'AI Sales Assistant', category: 'Intelligence', description: 'AI lead scoring, email drafting, deal summaries, and intelligent insights', icon: <Sparkles className="h-5 w-5" /> },
+  { code: 'EMAIL', name: 'Unified Email Suite', category: 'Communications', description: 'Send, track, and sync customer emails directly inside CRM timeline', icon: <Mail className="h-5 w-5" /> },
+  { code: 'WHATSAPP', name: 'WhatsApp Business', category: 'Communications', description: 'Direct WhatsApp integration for customer messaging and instant alerts', icon: <MessageCircle className="h-5 w-5" /> },
+  { code: 'SMS', name: 'SMS Gateway', category: 'Communications', description: 'SMS follow-ups, broadcast messaging, and automated text reminders', icon: <Phone className="h-5 w-5" /> },
+  { code: 'AUTOMATION', name: 'Workflow & Sequences', category: 'Automation', description: 'Event-driven triggers, multi-step drip campaigns, and lead routing', icon: <Zap className="h-5 w-5" /> },
+  { code: 'ENRICHMENT', name: 'Data Enrichment', category: 'Data & Growth', description: 'Automatically enrich company domain and contact data from web sources', icon: <Database className="h-5 w-5" /> },
+  { code: 'ANALYTICS_ADVANCED', name: 'Advanced Reporting', category: 'Analytics', description: 'Sales forecasting, activity metrics, and custom executive dashboards', icon: <BarChart3 className="h-5 w-5" /> },
+  { code: 'BUSINESS_FINDER_PRO', name: 'Business Finder Pro', category: 'Data & Growth', description: 'Discover local B2B leads by location and industry with lead import', icon: <Search className="h-5 w-5" /> },
 ];
+
+interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  industry?: string;
+}
 
 export default function ModulesPage() {
   const [moduleAccess, setModuleAccess] = useState<Record<string, boolean>>({});
-  const [entitlements, setEntitlements] = useState<Array<{ moduleCode: string; usageLimit: number | null }>>([]);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [selectedOrgId, setSelectedOrgId] = useState<string>('');
   const [loading, setLoading] = useState(true);
+  const [togglingCode, setTogglingCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
     fetchModuleData();
-  }, []);
+  }, [selectedOrgId]);
 
   async function fetchModuleData() {
     try {
       setLoading(true);
       setError(null);
 
-      const [subRes, usageRes] = await Promise.all([
-        fetch('/api/billing/subscription'),
-        fetch('/api/billing/usage'),
-      ]);
+      const url = selectedOrgId ? `/api/modules?organizationId=${selectedOrgId}` : '/api/modules';
+      const res = await fetch(url);
+      const json = await res.json();
 
-      if (subRes.ok) {
-        const subData = await subRes.json();
-        if (subData.success && subData.data?.plan?.entitlements) {
-          const access: Record<string, boolean> = {};
-          const entList: Array<{ moduleCode: string; usageLimit: number | null }> = [];
-          for (const ent of subData.data.plan.entitlements) {
-            access[ent.moduleCode] = true;
-            entList.push({ moduleCode: ent.moduleCode, usageLimit: ent.usageLimit });
-          }
-          setModuleAccess(access);
-          setEntitlements(entList);
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || 'Failed to load module configuration');
+      }
+
+      const { data } = json;
+      if (data.allOrganizations && data.allOrganizations.length > 0) {
+        setOrganizations(data.allOrganizations);
+        if (!selectedOrgId) {
+          setSelectedOrgId(data.organizationId);
         }
       }
 
-      if (usageRes.ok) {
-        // Usage data loaded for display purposes
+      // Build access mapping: defaults to true unless overridden in organizationModules
+      const access: Record<string, boolean> = {};
+      
+      // First populate from plan entitlements
+      if (data.planEntitlements) {
+        for (const ent of data.planEntitlements) {
+          access[ent.moduleCode] = true;
+        }
       }
+
+      // Default all core modules to enabled if plan not restrictive
+      for (const mod of MODULE_DEFINITIONS) {
+        if (access[mod.code] === undefined) {
+          access[mod.code] = true;
+        }
+      }
+
+      // Apply organization specific overrides
+      if (data.organizationModules) {
+        for (const om of data.organizationModules) {
+          access[om.moduleCode] = om.enabled;
+        }
+      }
+
+      setModuleAccess(access);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load module data');
+      setError(err instanceof Error ? err.message : 'Failed to load modules');
     } finally {
       setLoading(false);
     }
   }
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Module Management</h1>
-          <p className="text-sm text-slate-500 mt-1">View and manage enabled modules for your organization</p>
-        </div>
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
-        </div>
-      </div>
-    );
+  async function handleToggleModule(moduleCode: string, currentEnabled: boolean) {
+    const newStatus = !currentEnabled;
+    try {
+      setTogglingCode(moduleCode);
+      setError(null);
+      setSuccessMessage(null);
+
+      // Optimistic update
+      setModuleAccess((prev) => ({ ...prev, [moduleCode]: newStatus }));
+
+      const res = await fetch('/api/modules', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          moduleCode,
+          enabled: newStatus,
+          organizationId: selectedOrgId || undefined,
+        }),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok || !json.success) {
+        // Revert optimistic update
+        setModuleAccess((prev) => ({ ...prev, [moduleCode]: currentEnabled }));
+        throw new Error(json.error || 'Failed to update module status');
+      }
+
+      const modName = MODULE_DEFINITIONS.find((m) => m.code === moduleCode)?.name || moduleCode;
+      setSuccessMessage(`Module "${modName}" successfully ${newStatus ? 'ENABLED' : 'DISABLED'}.`);
+      setTimeout(() => setSuccessMessage(null), 4000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update module');
+    } finally {
+      setTogglingCode(null);
+    }
   }
 
-  if (error) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Module Management</h1>
-        </div>
-        <div className="flex flex-col items-center justify-center py-20 gap-3">
-          <AlertCircle className="h-8 w-8 text-rose-400" />
-          <p className="text-sm text-slate-500">{error}</p>
-          <Button variant="outline" size="sm" onClick={fetchModuleData}>Retry</Button>
-        </div>
-      </div>
-    );
-  }
+  const selectedOrg = organizations.find((o) => o.id === selectedOrgId);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Module Management</h1>
-        <p className="text-sm text-slate-500 mt-1">
-          Modules are determined by your organization&apos;s subscription plan. Upgrade your plan to access additional modules.
-        </p>
+    <div className="space-y-6 max-w-6xl">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-slate-200">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+            <Sliders className="h-6 w-6 text-brand-600" /> Module & Capability Admin Controls
+          </h1>
+          <p className="text-sm text-slate-500 mt-1">
+            Enable or disable specific CRM modules for companies and tenant organizations in real-time.
+          </p>
+        </div>
+
+        {/* Company Selector for Admin */}
+        {organizations.length > 0 && (
+          <div className="flex items-center gap-2 bg-white p-2 rounded-lg border border-slate-200 shadow-xs">
+            <Building2 className="h-4 w-4 text-slate-400 shrink-0" />
+            <span className="text-xs font-semibold text-slate-600 shrink-0">Target Company:</span>
+            <Select
+              className="w-56 text-xs h-8"
+              value={selectedOrgId}
+              onChange={(e) => setSelectedOrgId(e.target.value)}
+              options={organizations.map((o) => ({
+                value: o.id,
+                label: `${o.name} (${o.slug})`,
+              }))}
+            />
+          </div>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {MODULE_DEFINITIONS.map((mod) => {
-          const isEnabled = moduleAccess[mod.code] === true;
-          const entitlement = entitlements.find(e => e.moduleCode === mod.code);
+      {/* Notifications */}
+      {successMessage && (
+        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-md text-xs font-semibold text-emerald-800 flex items-center gap-2 animate-in fade-in">
+          <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+          <span>{successMessage}</span>
+        </div>
+      )}
 
-          return (
-            <Card
-              key={mod.code}
-              className={`transition-all ${
-                isEnabled
-                  ? 'border-emerald-200 bg-emerald-50/30'
-                  : 'border-slate-200 bg-slate-50/30 opacity-75'
-              }`}
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className={`p-2 rounded-lg ${isEnabled ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
-                    {mod.icon}
+      {error && (
+        <div className="p-3 bg-rose-50 border border-rose-200 rounded-md text-xs font-semibold text-rose-800 flex items-center gap-2">
+          <AlertCircle className="h-4 w-4 text-rose-600 shrink-0" />
+          <span>{error}</span>
+          <Button variant="outline" size="sm" onClick={fetchModuleData} className="ml-auto">
+            Retry
+          </Button>
+        </div>
+      )}
+
+      {/* Organization Status Banner */}
+      {selectedOrg && (
+        <div className="bg-slate-900 text-white p-4 rounded-xl shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-brand-600 flex items-center justify-center font-bold text-lg text-white">
+              {selectedOrg.name[0]}
+            </div>
+            <div>
+              <h2 className="font-bold text-sm text-white flex items-center gap-2">
+                {selectedOrg.name} <Badge variant="info" className="text-[10px]">Active Tenant</Badge>
+              </h2>
+              <p className="text-xs text-slate-400">
+                Industry: {selectedOrg.industry || 'General Business'} • Slug: {selectedOrg.slug}
+              </p>
+            </div>
+          </div>
+          <div className="text-xs text-slate-400 flex items-center gap-2">
+            <span>Enabled Modules:</span>
+            <Badge variant="success" className="font-bold">
+              {Object.values(moduleAccess).filter(Boolean).length} / {MODULE_DEFINITIONS.length} Active
+            </Badge>
+          </div>
+        </div>
+      )}
+
+      {/* Module Grid */}
+      {loading ? (
+        <div className="bg-white border border-slate-200 rounded-xl p-16 text-center text-xs text-slate-500 flex flex-col items-center justify-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-brand-600" />
+          <span>Loading module settings for tenant...</span>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {MODULE_DEFINITIONS.map((mod) => {
+            const isEnabled = moduleAccess[mod.code] === true;
+            const isBusy = togglingCode === mod.code;
+
+            return (
+              <Card
+                key={mod.code}
+                className={`transition-all duration-200 flex flex-col justify-between ${
+                  isEnabled
+                    ? 'border-emerald-300 bg-white shadow-xs ring-1 ring-emerald-500/10'
+                    : 'border-slate-200 bg-slate-50/50 opacity-80'
+                }`}
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2.5 rounded-lg ${isEnabled ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'}`}>
+                        {mod.icon}
+                      </div>
+                      <div>
+                        <Badge variant="outline" className="text-[10px] text-slate-500 uppercase tracking-wider mb-0.5">
+                          {mod.category}
+                        </Badge>
+                        <CardTitle className="text-sm font-bold text-slate-900">{mod.name}</CardTitle>
+                      </div>
+                    </div>
                   </div>
-                  {isEnabled ? (
-                    <Badge variant="success">
-                      <Check className="h-3 w-3 mr-1" />
-                      Enabled
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline">
-                      <X className="h-3 w-3 mr-1" />
-                      Not Available
-                    </Badge>
-                  )}
-                </div>
-                <CardTitle className="text-sm mt-3">{mod.name}</CardTitle>
-                <CardDescription>{mod.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="pt-0">
-                {isEnabled && entitlement && (
-                  <div className="text-xs text-slate-500">
-                    Usage limit:{' '}
-                    <span className="font-medium text-slate-700">
-                      {entitlement.usageLimit === null ? 'Unlimited' : `${entitlement.usageLimit} / period`}
-                    </span>
+                  <CardDescription className="text-xs text-slate-500 mt-2 leading-relaxed">
+                    {mod.description}
+                  </CardDescription>
+                </CardHeader>
+
+                <CardContent className="pt-2 border-t border-slate-100 flex items-center justify-between mt-auto">
+                  <div className="flex items-center gap-1.5">
+                    {isEnabled ? (
+                      <Badge variant="success" className="text-[11px] gap-1 px-2 py-0.5">
+                        <Check className="h-3 w-3" /> Active for Company
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-[11px] gap-1 text-slate-400 bg-slate-100 px-2 py-0.5">
+                        <X className="h-3 w-3" /> Disabled
+                      </Badge>
+                    )}
                   </div>
-                )}
-                {!isEnabled && (
-                  <p className="text-xs text-slate-400">
-                    Upgrade your plan to enable this module.
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+
+                  {/* Interactive Admin Toggle Button */}
+                  <Button
+                    variant={isEnabled ? 'danger' : 'primary'}
+                    size="sm"
+                    disabled={isBusy}
+                    onClick={() => handleToggleModule(mod.code, isEnabled)}
+                    className="font-medium text-xs shadow-xs gap-1.5"
+                  >
+                    {isBusy ? (
+                      <>
+                        <Loader2 className="h-3 w-3 animate-spin" /> Saving...
+                      </>
+                    ) : isEnabled ? (
+                      <>Disable Access</>
+                    ) : (
+                      <>Enable Access</>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
