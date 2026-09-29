@@ -77,7 +77,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse, disabledModules = [] }:
   return (
     <aside
       className={clsx(
-        'bg-slate-900 text-slate-300 flex flex-col border-r border-slate-800 transition-all duration-300 z-30 shrink-0 select-none min-h-screen',
+        'bg-slate-900 text-slate-300 flex flex-col border-r border-slate-800 transition-all duration-300 z-30 shrink-0 select-none h-screen sticky top-0',
         isCollapsed ? 'w-16' : 'w-64'
       )}
     >

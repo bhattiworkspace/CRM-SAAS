@@ -36,23 +36,10 @@ export default function LeadsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const searchParamsHook = require('next/navigation').useSearchParams();
+  const router = require('next/navigation').useRouter();
   const initialSearch = searchParamsHook ? searchParamsHook.get('search') || '' : '';
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState(initialSearch);
-
-  // Create Modal State
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [createForm, setCreateForm] = useState({
-    firstName: '',
-    lastName: '',
-    title: '',
-    email: '',
-    phone: '',
-    companyName: '',
-    priority: 'MEDIUM',
-    status: 'NEW',
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Import State
   const [isImportOpen, setIsImportOpen] = useState(false);
@@ -141,39 +128,6 @@ export default function LeadsPage() {
   useEffect(() => {
     fetchLeads();
   }, [fetchLeads]);
-
-  const handleCreateSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    try {
-      const res = await fetch('/api/leads', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(createForm),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setIsCreateOpen(false);
-        setCreateForm({
-          firstName: '',
-          lastName: '',
-          title: '',
-          email: '',
-          phone: '',
-          companyName: '',
-          priority: 'MEDIUM',
-          status: 'NEW',
-        });
-        fetchLeads();
-      } else {
-        alert(data.error || 'Failed to create lead');
-      }
-    } catch (err) {
-      alert('Error creating lead');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const handleConvertSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -326,7 +280,7 @@ export default function LeadsPage() {
           <Button variant="outline" onClick={() => setIsImportOpen(true)} className="gap-2">
             <UserPlus className="h-4 w-4" /> Import CSV
           </Button>
-          <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
+          <Button onClick={() => router.push('/leads/new')} className="gap-2">
             <Plus className="h-4 w-4" /> Add Lead
           </Button>
         </div>
@@ -409,82 +363,6 @@ export default function LeadsPage() {
           </div>
         </div>
       )}
-      {/* Create Lead Modal */}
-      <Modal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} title="Create New Lead">
-        <form onSubmit={handleCreateSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <Input
-              label="First Name"
-              required
-              value={createForm.firstName}
-              onChange={(e) => setCreateForm({ ...createForm, firstName: e.target.value })}
-            />
-            <Input
-              label="Last Name"
-              required
-              value={createForm.lastName}
-              onChange={(e) => setCreateForm({ ...createForm, lastName: e.target.value })}
-            />
-          </div>
-          <Input
-            label="Job Title"
-            value={createForm.title}
-            onChange={(e) => setCreateForm({ ...createForm, title: e.target.value })}
-          />
-          <Input
-            label="Company Name"
-            value={createForm.companyName}
-            onChange={(e) => setCreateForm({ ...createForm, companyName: e.target.value })}
-          />
-          <div className="grid grid-cols-2 gap-3">
-            <Input
-              label="Email"
-              type="email"
-              value={createForm.email}
-              onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
-            />
-            <Input
-              label="Phone"
-              value={createForm.phone}
-              onChange={(e) => setCreateForm({ ...createForm, phone: e.target.value })}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <Select
-              label="Priority"
-              value={createForm.priority}
-              onChange={(e) => setCreateForm({ ...createForm, priority: e.target.value })}
-              options={[
-                { value: 'LOW', label: 'Low' },
-                { value: 'MEDIUM', label: 'Medium' },
-                { value: 'HIGH', label: 'High' },
-                { value: 'URGENT', label: 'Urgent' },
-              ]}
-            />
-            <Select
-              label="Status"
-              value={createForm.status}
-              onChange={(e) => setCreateForm({ ...createForm, status: e.target.value })}
-              options={[
-                { value: 'NEW', label: 'New' },
-                { value: 'CONTACTED', label: 'Contacted' },
-                { value: 'QUALIFIED', label: 'Qualified' },
-                { value: 'UNQUALIFIED', label: 'Unqualified' },
-              ]}
-            />
-          </div>
-
-          <div className="pt-4 flex justify-end gap-2 border-t border-slate-100">
-            <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" isLoading={isSubmitting}>
-              Save Lead
-            </Button>
-          </div>
-        </form>
-      </Modal>
-
       {/* Convert Lead Modal */}
       {convertLead && (
         <Modal
