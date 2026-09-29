@@ -6,6 +6,8 @@ import { leadSchema } from '@/lib/validations/lead';
 import { recordAuditLog } from '@/lib/audit';
 import { dispatchWorkflowTrigger } from '@/lib/services/workflow-dispatcher';
 
+import { revalidatePath } from 'next/cache';
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -122,6 +124,9 @@ export async function POST(req: NextRequest) {
     });
 
     await dispatchWorkflowTrigger(context.organization.id, 'LEAD_CREATED', { leadId: lead.id, ...lead });
+
+    revalidatePath('/dashboard');
+    revalidatePath('/leads');
 
     return NextResponse.json({ success: true, lead }, { status: 201 });
   } catch (error: unknown) {

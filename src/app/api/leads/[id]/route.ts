@@ -6,6 +6,8 @@ import { leadSchema } from '@/lib/validations/lead';
 import { recordAuditLog } from '@/lib/audit';
 import { dispatchWorkflowTrigger } from '@/lib/services/workflow-dispatcher';
 
+import { revalidatePath } from 'next/cache';
+
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const orgIdHeader = req.headers.get('x-organization-id') || undefined;
@@ -69,6 +71,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       metadata: { status: updatedLead.status },
     });
 
+    revalidatePath('/dashboard');
+    revalidatePath('/leads');
+
     return NextResponse.json({ success: true, lead: updatedLead });
   } catch (error: unknown) {
     const errMessage = error instanceof Error ? error.message : 'Failed to update lead status';
@@ -110,6 +115,9 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     if (existing.status !== 'QUALIFIED' && updatedLead.status === 'QUALIFIED') {
       await dispatchWorkflowTrigger(context.organization.id, 'LEAD_QUALIFIED', { leadId: updatedLead.id, ...updatedLead });
     }
+
+    revalidatePath('/dashboard');
+    revalidatePath('/leads');
 
     return NextResponse.json({ success: true, lead: updatedLead });
   } catch (error: unknown) {
