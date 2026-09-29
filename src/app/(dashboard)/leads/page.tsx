@@ -8,6 +8,7 @@ import { Select } from '@/components/ui/select';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Modal } from '@/components/ui/modal';
+import { updateLeadStatusAction } from '@/app/actions/leads';
 
 interface LeadItem {
   id: string;
@@ -125,18 +126,8 @@ export default function LeadsPage() {
 
   const updateLeadStatus = async (leadId: string, newStatus: string) => {
     try {
-      const res = await fetch(`/api/leads/${leadId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        fetchLeads();
-        router.refresh();
-      } else {
-        alert(data.error || 'Failed to update status');
-      }
+      await updateLeadStatusAction(leadId, newStatus);
+      fetchLeads(); // update local state immediately
     } catch (err) {
       alert('Error updating status');
     }

@@ -108,6 +108,7 @@ export default function NewLeadPage() {
 
       const data = await res.json();
       if (data.success) {
+        router.refresh(); // clear client cache
         router.push('/leads');
       } else {
         alert(data.error || 'Failed to create lead');
