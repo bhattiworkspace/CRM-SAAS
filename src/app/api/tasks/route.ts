@@ -18,6 +18,10 @@ export async function GET(req: NextRequest) {
       organizationId: context.organization.id,
     };
 
+    if (context.role.name === 'Sales Representative') {
+      where.assignedToId = context.user.id;
+    }
+
     if (status) where.status = status;
     if (priority) where.priority = priority;
 

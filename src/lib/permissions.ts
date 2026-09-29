@@ -76,7 +76,7 @@ export type PermissionCode = typeof PERMISSIONS[keyof typeof PERMISSIONS];
 
 export const DEFAULT_ROLE_PERMISSIONS: Record<string, PermissionCode[]> = {
   Owner: Object.values(PERMISSIONS),
-  Admin: Object.values(PERMISSIONS).filter(p => p !== PERMISSIONS.BILLING_MANAGE),
+  Admin: Object.values(PERMISSIONS).filter(p => p !== PERMISSIONS.BILLING_MANAGE && p !== PERMISSIONS.MODULES_MANAGE),
   'Sales Manager': [
     PERMISSIONS.DASHBOARD_VIEW,
     PERMISSIONS.LEADS_VIEW,

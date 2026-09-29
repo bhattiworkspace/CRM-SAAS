@@ -13,11 +13,17 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const orgIdHeader = req.headers.get('x-organization-id') || undefined;
     const context = await requireTenantPermission(PERMISSIONS.LEADS_VIEW, orgIdHeader);
 
+    const whereClause: Record<string, unknown> = {
+      id: params.id,
+      organizationId: context.organization.id,
+    };
+
+    if (context.role.name === 'Sales Representative') {
+      whereClause.ownerId = context.user.id;
+    }
+
     const lead = await prisma.lead.findFirst({
-      where: {
-        id: params.id,
-        organizationId: context.organization.id,
-      },
+      where: whereClause,
       include: {
         owner: { select: { id: true, name: true, email: true, image: true } },
         activities: {
@@ -55,6 +61,10 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
     if (!existing) {
       return NextResponse.json({ success: false, error: 'Lead not found or access denied' }, { status: 404 });
+    }
+
+    if (context.role.name === 'Sales Representative' && existing.ownerId !== context.user.id) {
+      return NextResponse.json({ success: false, error: 'Unauthorized to update this lead' }, { status: 403 });
     }
 
     const updatedLead = await prisma.lead.update({
@@ -98,6 +108,10 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       return NextResponse.json({ success: false, error: 'Lead not found or access denied' }, { status: 404 });
     }
 
+    if (context.role.name === 'Sales Representative' && existing.ownerId !== context.user.id) {
+      return NextResponse.json({ success: false, error: 'Unauthorized to update this lead' }, { status: 403 });
+    }
+
     const updatedLead = await prisma.lead.update({
       where: { id: params.id },
       data: validatedData,
@@ -137,6 +151,10 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
     if (!existing) {
       return NextResponse.json({ success: false, error: 'Lead not found or access denied' }, { status: 404 });
+    }
+
+    if (context.role.name === 'Sales Representative' && existing.ownerId !== context.user.id) {
+      return NextResponse.json({ success: false, error: 'Unauthorized to delete this lead' }, { status: 403 });
     }
 
     await prisma.lead.delete({

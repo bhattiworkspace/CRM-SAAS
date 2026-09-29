@@ -22,6 +22,11 @@ export async function GET(req: NextRequest) {
       organizationId: context.organization.id,
     };
 
+    // Strict role-based filtering: Sales Persons only see their own leads
+    if (context.role.name === 'Sales Representative') {
+      where.ownerId = context.user.id;
+    }
+
     if (status) where.status = status;
     if (priority) where.priority = priority;
     if (search) {
@@ -74,11 +79,11 @@ export async function POST(req: NextRequest) {
       ...leadData 
     } = validatedData;
 
-    // We can store extra info in title or leave it out if we don't need it on the model
     const lead = await prisma.lead.create({
       data: {
         ...leadData,
         organizationId: context.organization.id,
+        ownerId: leadData.ownerId || context.user.id,
       },
       include: {
         owner: { select: { id: true, name: true, email: true } },
@@ -93,7 +98,7 @@ export async function POST(req: NextRequest) {
         status: 'PENDING',
         priority: 'HIGH',
         dueDate: fu.date ? new Date(fu.date) : new Date(),
-        assignedToId: context.user.id,
+        assignedToId: lead.ownerId,
         leadId: lead.id,
       }));
       await prisma.task.createMany({ data: tasks });
@@ -108,7 +113,7 @@ export async function POST(req: NextRequest) {
           status: 'COMPLETED',
           priority: 'MEDIUM',
           dueDate: new Date(),
-          assignedToId: context.user.id,
+          assignedToId: lead.ownerId,
           leadId: lead.id,
         }
       });

@@ -11,11 +11,17 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const orgIdHeader = req.headers.get('x-organization-id') || undefined;
     const context = await requireTenantPermission(PERMISSIONS.DEALS_VIEW, orgIdHeader);
 
+    const whereClause: Record<string, unknown> = {
+      id: params.id,
+      organizationId: context.organization.id,
+    };
+
+    if (context.role.name === 'Sales Representative') {
+      whereClause.ownerId = context.user.id;
+    }
+
     const deal = await prisma.deal.findFirst({
-      where: {
-        id: params.id,
-        organizationId: context.organization.id,
-      },
+      where: whereClause,
       include: {
         pipeline: true,
         stage: true,
@@ -52,6 +58,10 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
     if (!existing) {
       return NextResponse.json({ success: false, error: 'Deal not found or access denied' }, { status: 404 });
+    }
+
+    if (context.role.name === 'Sales Representative' && existing.ownerId !== context.user.id) {
+      return NextResponse.json({ success: false, error: 'Unauthorized to update this deal' }, { status: 403 });
     }
 
     const updatedDeal = await prisma.deal.update({
@@ -106,6 +116,10 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
     if (!existing) {
       return NextResponse.json({ success: false, error: 'Deal not found or access denied' }, { status: 404 });
+    }
+
+    if (context.role.name === 'Sales Representative' && existing.ownerId !== context.user.id) {
+      return NextResponse.json({ success: false, error: 'Unauthorized to delete this deal' }, { status: 403 });
     }
 
     await prisma.deal.delete({

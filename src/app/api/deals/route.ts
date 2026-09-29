@@ -38,11 +38,17 @@ export async function GET(req: NextRequest) {
         })
       : null;
 
+    const where: Record<string, unknown> = {
+      organizationId: context.organization.id,
+      ...(pipelineId ? { pipelineId } : {}),
+    };
+
+    if (context.role.name === 'Sales Representative') {
+      where.ownerId = context.user.id;
+    }
+
     const deals = await prisma.deal.findMany({
-      where: {
-        organizationId: context.organization.id,
-        ...(pipelineId ? { pipelineId } : {}),
-      },
+      where,
       include: {
         stage: true,
         company: { select: { id: true, name: true } },

@@ -91,7 +91,7 @@ export default function NewLeadPage() {
       dealDescription: deal.description,
       leadDate: deal.leadDate,
       estimatedValue: deal.estimatedValue ? Number(deal.estimatedValue) : undefined,
-      assignTo: deal.assignTo,
+      ownerId: deal.assignTo,
       contactName: contact.name,
       contactDesignation: contact.designation,
       contactMobileNo: contact.mobileNo,

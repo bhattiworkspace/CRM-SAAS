@@ -26,6 +26,16 @@ export default async function DashboardPage() {
   const dayAfter = new Date(tomorrow);
   dayAfter.setDate(dayAfter.getDate() + 1);
 
+  // Role-based filtering
+  const isSalesRep = context?.role?.name === 'Sales Representative';
+  const leadWhere: Record<string, unknown> = { organizationId: orgId };
+  const taskWhere: Record<string, unknown> = { organizationId: orgId, status: 'PENDING' };
+
+  if (isSalesRep && context?.user?.id) {
+    leadWhere.ownerId = context.user.id;
+    taskWhere.assignedToId = context.user.id;
+  }
+
   // Data Fetching
   const [
     orgData,
@@ -42,31 +52,31 @@ export default async function DashboardPage() {
       where: { id: orgId },
       select: { currency: true }
     }),
-    prisma.lead.count({ where: { organizationId: orgId } }),
-    prisma.lead.count({ where: { organizationId: orgId, status: 'NEW' } }),
-    prisma.lead.findMany({ where: { organizationId: orgId }, select: { estimatedValue: true, status: true } }),
+    prisma.lead.count({ where: leadWhere }),
+    prisma.lead.count({ where: { ...leadWhere, status: 'NEW' } }),
+    prisma.lead.findMany({ where: leadWhere, select: { estimatedValue: true, status: true } }),
     prisma.task.findMany({
-      where: { organizationId: orgId, status: 'PENDING', dueDate: { gte: today, lt: tomorrow } },
+      where: { ...taskWhere, dueDate: { gte: today, lt: tomorrow } },
       include: { lead: true, assignedTo: { select: { name: true } } },
       take: 10
     }),
     prisma.task.findMany({
-      where: { organizationId: orgId, status: 'PENDING', dueDate: { gte: tomorrow, lt: dayAfter } },
+      where: { ...taskWhere, dueDate: { gte: tomorrow, lt: dayAfter } },
       include: { lead: true, assignedTo: { select: { name: true } } },
       take: 10
     }),
     prisma.lead.groupBy({
       by: ['status'],
-      where: { organizationId: orgId },
+      where: leadWhere,
       _count: true
     }),
     prisma.lead.groupBy({
       by: ['source'],
-      where: { organizationId: orgId },
+      where: leadWhere,
       _count: true
     }),
     prisma.lead.findMany({
-      where: { organizationId: orgId },
+      where: leadWhere,
       orderBy: { createdAt: 'desc' },
       take: 10,
       include: { owner: { select: { name: true } } }

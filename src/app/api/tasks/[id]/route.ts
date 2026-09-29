@@ -21,6 +21,10 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       return NextResponse.json({ success: false, error: 'Task not found or access denied' }, { status: 404 });
     }
 
+    if (context.role.name === 'Sales Representative' && existing.assignedToId !== context.user.id) {
+      return NextResponse.json({ success: false, error: 'Unauthorized to update this task' }, { status: 403 });
+    }
+
     const updatedTask = await prisma.task.update({
       where: { id: params.id },
       data: {
@@ -57,6 +61,10 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
     if (!existing) {
       return NextResponse.json({ success: false, error: 'Task not found or access denied' }, { status: 404 });
+    }
+
+    if (context.role.name === 'Sales Representative' && existing.assignedToId !== context.user.id) {
+      return NextResponse.json({ success: false, error: 'Unauthorized to delete this task' }, { status: 403 });
     }
 
     await prisma.task.delete({
