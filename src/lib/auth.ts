@@ -91,7 +91,7 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: '/login',
   },
-  secret: process.env.NEXTAUTH_SECRET || 'fallback-dev-secret',
+  secret: process.env.NEXTAUTH_SECRET || 'crm-saas-production-secret-key-123456',
 };
 
 export async function getTenantSession(requestedOrgId?: string): Promise<TenantSessionContext | null> {
