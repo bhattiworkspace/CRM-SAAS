@@ -46,6 +46,7 @@ export async function PUT(req: NextRequest) {
         address: body.address,
         country: body.country,
         timezone: body.timezone,
+        currency: body.currency,
       },
     });
 

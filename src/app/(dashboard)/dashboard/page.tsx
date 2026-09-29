@@ -13,6 +13,7 @@ import {
   ArrowRight,
   CheckCircle2
 } from 'lucide-react';
+import { AnimatedBar } from '@/components/dashboard/animated-bars';
 
 export default async function DashboardPage() {
   const context = await getTenantSession();
@@ -27,18 +28,23 @@ export default async function DashboardPage() {
 
   // Data Fetching
   const [
+    orgData,
     totalLeads,
     newLeadsCount,
-    deals,
+    leadsForValue,
     todayTasks,
     tomorrowTasks,
     leadsByStatus,
     leadsBySource,
     recentLeads
   ] = await Promise.all([
+    prisma.organization.findUnique({
+      where: { id: orgId },
+      select: { currency: true }
+    }),
     prisma.lead.count({ where: { organizationId: orgId } }),
     prisma.lead.count({ where: { organizationId: orgId, status: 'NEW' } }),
-    prisma.deal.findMany({ where: { organizationId: orgId } }),
+    prisma.lead.findMany({ where: { organizationId: orgId }, select: { estimatedValue: true, status: true } }),
     prisma.task.findMany({
       where: { organizationId: orgId, status: 'PENDING', dueDate: { gte: today, lt: tomorrow } },
       include: { lead: true, assignedTo: { select: { name: true } } },
@@ -67,12 +73,15 @@ export default async function DashboardPage() {
     })
   ]);
 
-  let closedWonCount = 0;
-  let estimatedValue = 0;
-  deals.forEach(d => {
-    estimatedValue += d.amount;
-    if (d.status === 'WON') {
-      closedWonCount++;
+  const currencySymbol = orgData?.currency || '$';
+
+  let totalWonValue = 0;
+  let totalPipelineValue = 0;
+  leadsForValue.forEach(l => {
+    const val = l.estimatedValue || 0;
+    totalPipelineValue += val;
+    if (l.status === 'CLOSED_WON') {
+      totalWonValue += val;
     }
   });
 
@@ -137,8 +146,10 @@ export default async function DashboardPage() {
         <Card>
           <CardContent className="p-5 flex items-center justify-between">
             <div>
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Closed Won</p>
-              <h3 className="text-2xl font-extrabold text-slate-900 mt-1">{closedWonCount}</h3>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Won Value</p>
+              <h3 className="text-2xl font-extrabold text-slate-900 mt-1">
+                {currencySymbol}{totalWonValue.toLocaleString()}
+              </h3>
             </div>
             <div className="h-10 w-10 rounded-lg bg-pink-50 flex items-center justify-center text-pink-600">
               <Trophy className="h-5 w-5" />
@@ -149,9 +160,9 @@ export default async function DashboardPage() {
         <Card>
           <CardContent className="p-5 flex items-center justify-between">
             <div>
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Est. Value</p>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Pipeline Value</p>
               <h3 className="text-2xl font-extrabold text-slate-900 mt-1">
-                ${estimatedValue.toLocaleString()}
+                {currencySymbol}{totalPipelineValue.toLocaleString()}
               </h3>
             </div>
             <div className="h-10 w-10 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600">
@@ -229,9 +240,9 @@ export default async function DashboardPage() {
                     {status.replace('_', ' ')}
                   </div>
                   <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
-                    <div 
-                      className={`h-full rounded-full ${getStatusColor(status)} transition-all`}
-                      style={{ width: `${width}%` }}
+                    <AnimatedBar 
+                      width={width}
+                      className={getStatusColor(status)}
                     />
                   </div>
                   <div className="w-8 text-right text-xs font-semibold text-slate-700">
@@ -257,9 +268,9 @@ export default async function DashboardPage() {
                     {source.source}
                   </div>
                   <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full rounded-full bg-brand-500 transition-all"
-                      style={{ width: `${width}%` }}
+                    <AnimatedBar 
+                      width={width}
+                      className="bg-brand-500"
                     />
                   </div>
                   <div className="w-8 text-right text-xs font-semibold text-slate-700">
@@ -288,7 +299,7 @@ export default async function DashboardPage() {
                   <th className="px-4 py-3 font-semibold">Name</th>
                   <th className="px-4 py-3 font-semibold">Customer</th>
                   <th className="px-4 py-3 font-semibold">Status</th>
-                  <th className="px-4 py-3 font-semibold">Score</th>
+                  <th className="px-4 py-3 font-semibold">Value</th>
                   <th className="px-4 py-3 font-semibold">Assigned To</th>
                 </tr>
               </thead>
@@ -303,7 +314,7 @@ export default async function DashboardPage() {
                       </Badge>
                     </td>
                     <td className="px-4 py-3 text-slate-600">
-                      {lead.score > 0 ? lead.score : '-'}
+                      {lead.estimatedValue ? `${currencySymbol}${lead.estimatedValue.toLocaleString()}` : '-'}
                     </td>
                     <td className="px-4 py-3 text-slate-600">
                       {lead.owner?.name || '-'}

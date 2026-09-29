@@ -23,6 +23,7 @@ model Organization {
   address     String?
   country     String?
   timezone    String   @default("UTC")
+  currency    String   @default("USD")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -157,6 +158,7 @@ model Lead {
   priority       String   @default("MEDIUM")
   source         String   @default("MANUAL")
   score          Int      @default(0)
+  estimatedValue Float?   @default(0)
   ownerId        String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt

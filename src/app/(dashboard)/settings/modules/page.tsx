@@ -72,6 +72,10 @@ export default function ModulesPage() {
   const [togglingCode, setTogglingCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [canManageModules, setCanManageModules] = useState<boolean>(false);
+  const [members, setMembers] = useState<any[]>([]);
+  const [roles, setRoles] = useState<any[]>([]);
+  const [updatingRole, setUpdatingRole] = useState<string | null>(null);
 
   useEffect(() => {
     fetchModuleData();
@@ -97,6 +101,10 @@ export default function ModulesPage() {
           setSelectedOrgId(data.organizationId);
         }
       }
+
+      setCanManageModules(!!data.canManageModules);
+      if (data.members) setMembers(data.members);
+      if (data.roles) setRoles(data.roles);
 
       // Build access mapping: defaults to true unless overridden in organizationModules
       const access: Record<string, boolean> = {};
@@ -224,7 +232,7 @@ export default function ModulesPage() {
         </div>
 
         {/* Company Selector for Admin */}
-        {organizations.length > 0 && (
+        {canManageModules && organizations.length > 0 && (
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <div className="flex items-center gap-2 bg-white p-2 rounded-lg border border-slate-200 shadow-xs">
               <Building2 className="h-4 w-4 text-slate-400 shrink-0" />
@@ -309,6 +317,60 @@ export default function ModulesPage() {
         </div>
       )}
 
+      {/* Settings Access Managers */}
+      {canManageModules && members.length > 0 && (
+        <Card className="border-slate-200 shadow-xs">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-brand-600" /> Settings Access Managers
+            </CardTitle>
+            <CardDescription className="text-xs">
+              Manage who has access to view and change organization settings and module toggles.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {members.map((m) => (
+                <div key={m.id} className="flex items-center justify-between p-3 border border-slate-100 rounded-lg bg-slate-50/50">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold text-slate-900">{m.user.name}</span>
+                    <span className="text-xs text-slate-500">{m.user.email}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Select
+                      className="w-36 text-xs h-8"
+                      value={m.role.id}
+                      disabled={updatingRole === m.id}
+                      onChange={async (e) => {
+                        const newRoleId = e.target.value;
+                        setUpdatingRole(m.id);
+                        try {
+                          const res = await fetch(`/api/settings/members/${m.id}`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ roleId: newRoleId })
+                          });
+                          if (!res.ok) throw new Error('Failed to update role');
+                          setSuccessMessage(`Role updated for ${m.user.name}`);
+                          setTimeout(() => setSuccessMessage(null), 3000);
+                          fetchModuleData();
+                        } catch (err) {
+                          setError(err instanceof Error ? err.message : 'Failed to update role');
+                        } finally {
+                          setUpdatingRole(null);
+                        }
+                      }}
+                      options={roles.map(r => ({ value: r.id, label: r.name }))}
+                    />
+                    {updatingRole === m.id && <Loader2 className="h-3 w-3 animate-spin text-slate-400" />}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Module Grid */}
       {loading ? (
         <div className="bg-white border border-slate-200 rounded-xl p-16 text-center text-xs text-slate-500 flex flex-col items-center justify-center gap-3">
@@ -363,23 +425,27 @@ export default function ModulesPage() {
                   </div>
 
                   {/* Interactive Admin Toggle Button */}
-                  <Button
-                    variant={isEnabled ? 'danger' : 'primary'}
-                    size="sm"
-                    disabled={isBusy}
-                    onClick={() => handleToggleModule(mod.code, isEnabled)}
-                    className="font-medium text-xs shadow-xs gap-1.5"
-                  >
-                    {isBusy ? (
-                      <>
-                        <Loader2 className="h-3 w-3 animate-spin" /> Saving...
-                      </>
-                    ) : isEnabled ? (
-                      <>Disable Access</>
-                    ) : (
-                      <>Enable Access</>
-                    )}
-                  </Button>
+                  {canManageModules ? (
+                    <Button
+                      variant={isEnabled ? 'danger' : 'primary'}
+                      size="sm"
+                      disabled={isBusy}
+                      onClick={() => handleToggleModule(mod.code, isEnabled)}
+                      className="font-medium text-xs shadow-xs gap-1.5"
+                    >
+                      {isBusy ? (
+                        <>
+                          <Loader2 className="h-3 w-3 animate-spin" /> Saving...
+                        </>
+                      ) : isEnabled ? (
+                        <>Disable Access</>
+                      ) : (
+                        <>Enable Access</>
+                      )}
+                    </Button>
+                  ) : (
+                    <span className="text-[10px] text-slate-400">View Only</span>
+                  )}
                 </CardContent>
               </Card>
             );

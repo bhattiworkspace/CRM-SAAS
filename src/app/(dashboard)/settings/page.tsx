@@ -18,6 +18,7 @@ interface OrgData {
   email?: string;
   website?: string;
   timezone?: string;
+  currency?: string;
   memberships: Array<{
     id: string;
     user: { name: string; email: string };
@@ -39,6 +40,7 @@ export default function SettingsPage() {
     email: '',
     website: '',
     timezone: 'UTC',
+    currency: 'USD',
   });
 
   useEffect(() => {
@@ -55,6 +57,7 @@ export default function SettingsPage() {
             email: data.organization.email || '',
             website: data.organization.website || '',
             timezone: data.organization.timezone || 'UTC',
+            currency: data.organization.currency || 'USD',
           });
         }
       } catch (err) {
@@ -168,7 +171,7 @@ export default function SettingsPage() {
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
               />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Input
                 label="Website URL"
                 value={form.website}
@@ -184,6 +187,20 @@ export default function SettingsPage() {
                   { value: 'America/Chicago', label: 'America / Chicago (CST)' },
                   { value: 'America/Los_Angeles', label: 'America / Los Angeles (PST)' },
                   { value: 'Europe/London', label: 'Europe / London (GMT)' },
+                ]}
+              />
+              <Select
+                label="Currency"
+                value={form.currency}
+                onChange={(e) => setForm({ ...form, currency: e.target.value })}
+                options={[
+                  { value: 'USD', label: 'US Dollar ($)' },
+                  { value: 'EUR', label: 'Euro (€)' },
+                  { value: 'GBP', label: 'British Pound (£)' },
+                  { value: 'INR', label: 'Indian Rupee (₹)' },
+                  { value: 'AUD', label: 'Australian Dollar (A$)' },
+                  { value: 'CAD', label: 'Canadian Dollar (C$)' },
+                  { value: 'JPY', label: 'Japanese Yen (¥)' },
                 ]}
               />
             </div>

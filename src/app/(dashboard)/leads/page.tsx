@@ -22,6 +22,7 @@ interface LeadItem {
   source: string;
   createdAt: string;
   owner?: { id: string; name: string };
+  estimatedValue?: number;
   tasks?: Array<{
     id: string;
     title: string;
@@ -40,6 +41,7 @@ export default function LeadsPage() {
   const initialSearch = searchParamsHook ? searchParamsHook.get('search') || '' : '';
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState(initialSearch);
+  const [currency, setCurrency] = useState('$');
 
   // Import State
   const [isImportOpen, setIsImportOpen] = useState(false);
@@ -91,15 +93,6 @@ export default function LeadsPage() {
     }
   };
 
-  // Convert Modal State
-  const [convertLead, setConvertLead] = useState<LeadItem | null>(null);
-  const [convertForm, setConvertForm] = useState({
-    createDeal: true,
-    dealName: '',
-    dealAmount: 10000,
-  });
-  const [isConverting, setIsConverting] = useState(false);
-
   const fetchLeads = useCallback(async () => {
     setLoading(true);
     setError('');
@@ -115,6 +108,7 @@ export default function LeadsPage() {
 
       if (data.success) {
         setLeads(data.leads);
+        if (data.currency) setCurrency(data.currency);
       } else {
         setError(data.error || 'Failed to fetch leads');
       }
@@ -129,28 +123,21 @@ export default function LeadsPage() {
     fetchLeads();
   }, [fetchLeads]);
 
-  const handleConvertSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!convertLead) return;
-    setIsConverting(true);
+  const updateLeadStatus = async (leadId: string, newStatus: string) => {
     try {
-      const res = await fetch(`/api/leads/${convertLead.id}/convert`, {
-        method: 'POST',
+      const res = await fetch(`/api/leads/${leadId}`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(convertForm),
+        body: JSON.stringify({ status: newStatus }),
       });
       const data = await res.json();
       if (data.success) {
-        setConvertLead(null);
         fetchLeads();
-        alert('Lead successfully converted to Contact, Company & Deal!');
       } else {
-        alert(data.error || 'Conversion failed');
+        alert(data.error || 'Failed to update status');
       }
     } catch (err) {
-      alert('Error converting lead');
-    } finally {
-      setIsConverting(false);
+      alert('Error updating status');
     }
   };
 
@@ -183,11 +170,11 @@ export default function LeadsPage() {
           <TableHead>Lead Name</TableHead>
           <TableHead>Company</TableHead>
           <TableHead>Contact</TableHead>
+          <TableHead>Value</TableHead>
           <TableHead>Status</TableHead>
           <TableHead>Priority</TableHead>
           <TableHead>Source</TableHead>
           <TableHead>Assignee</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -205,20 +192,22 @@ export default function LeadsPage() {
             <TableCell className="text-slate-600">
               {lead.email || lead.phone || '—'}
             </TableCell>
+            <TableCell className="text-slate-600 font-medium">
+              {lead.estimatedValue ? `${currency}${lead.estimatedValue.toLocaleString()}` : '—'}
+            </TableCell>
             <TableCell>
-              <Badge
-                variant={
-                  lead.status === 'CONVERTED'
-                    ? 'success'
-                    : lead.status === 'QUALIFIED'
-                    ? 'info'
-                    : lead.status === 'NEW'
-                    ? 'purple'
-                    : 'default'
-                }
+              <select
+                value={lead.status}
+                onChange={(e) => updateLeadStatus(lead.id, e.target.value)}
+                className="text-xs bg-slate-50 border border-slate-200 rounded px-2 py-1 focus:ring-brand-500 focus:border-brand-500"
               >
-                {lead.status}
-              </Badge>
+                <option value="NEW">NEW</option>
+                <option value="CONTACTED">CONTACTED</option>
+                <option value="QUALIFIED">QUALIFIED</option>
+                <option value="PROPOSAL">PROPOSAL</option>
+                <option value="CLOSED_WON">CLOSED WON</option>
+                <option value="CLOSED_LOST">CLOSED LOST</option>
+              </select>
             </TableCell>
             <TableCell>
               <Badge
@@ -235,29 +224,6 @@ export default function LeadsPage() {
             </TableCell>
             <TableCell className="text-slate-500 text-[11px]">{lead.source}</TableCell>
             <TableCell className="text-slate-700 font-medium">{lead.owner?.name || 'Unassigned'}</TableCell>
-            <TableCell className="text-right">
-              {lead.status !== 'CONVERTED' ? (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    setConvertLead(lead);
-                    setConvertForm({
-                      createDeal: true,
-                      dealName: `${lead.companyName || lead.lastName} Deal`,
-                      dealAmount: 15000,
-                    });
-                  }}
-                  className="gap-1.5 text-xs text-brand-700 hover:bg-brand-50"
-                >
-                  <ArrowRightLeft className="h-3.5 w-3.5" /> Convert
-                </Button>
-              ) : (
-                <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 font-semibold">
-                  <CheckCircle className="h-3.5 w-3.5" /> Converted
-                </span>
-              )}
-            </TableCell>
           </TableRow>
         ))}
       </TableBody>
@@ -362,62 +328,6 @@ export default function LeadsPage() {
             <LeadTable leads={leads} />
           </div>
         </div>
-      )}
-      {/* Convert Lead Modal */}
-      {convertLead && (
-        <Modal
-          isOpen={!!convertLead}
-          onClose={() => setConvertLead(null)}
-          title={`Convert Lead: ${convertLead.firstName} ${convertLead.lastName}`}
-          description="Atomic Operation: Creates Contact, Company, and optional Deal in your CRM."
-        >
-          <form onSubmit={handleConvertSubmit} className="space-y-4">
-            <div className="p-3 bg-slate-50 border border-slate-200 rounded-md text-xs space-y-1">
-              <p className="font-semibold text-slate-800">Target Records to Create:</p>
-              <p className="text-slate-600">• Company: <span className="font-bold">{convertLead.companyName || `${convertLead.lastName} Org`}</span></p>
-              <p className="text-slate-600">• Contact: <span className="font-bold">{convertLead.firstName} {convertLead.lastName}</span></p>
-            </div>
-
-            <div className="space-y-3 pt-2">
-              <label className="flex items-center gap-2 text-xs font-semibold text-slate-800 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={convertForm.createDeal}
-                  onChange={(e) => setConvertForm({ ...convertForm, createDeal: e.target.checked })}
-                  className="rounded border-slate-300 text-brand-600 focus:ring-brand-500 h-4 w-4"
-                />
-                <span>Create associated Deal in Pipeline</span>
-              </label>
-
-              {convertForm.createDeal && (
-                <div className="space-y-3 pl-6 border-l-2 border-brand-200">
-                  <Input
-                    label="Deal Name"
-                    required
-                    value={convertForm.dealName}
-                    onChange={(e) => setConvertForm({ ...convertForm, dealName: e.target.value })}
-                  />
-                  <Input
-                    label="Deal Amount ($)"
-                    type="number"
-                    required
-                    value={convertForm.dealAmount}
-                    onChange={(e) => setConvertForm({ ...convertForm, dealAmount: Number(e.target.value) })}
-                  />
-                </div>
-              )}
-            </div>
-
-            <div className="pt-4 flex justify-end gap-2 border-t border-slate-100">
-              <Button type="button" variant="outline" onClick={() => setConvertLead(null)}>
-                Cancel
-              </Button>
-              <Button type="submit" isLoading={isConverting} className="bg-emerald-600 hover:bg-emerald-700">
-                Execute Atomic Conversion
-              </Button>
-            </div>
-          </form>
-        </Modal>
       )}
       {/* Import Modal */}
       <Modal isOpen={isImportOpen} onClose={() => setIsImportOpen(false)} title="Import Leads via CSV">

@@ -40,6 +40,42 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
+export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const orgIdHeader = req.headers.get('x-organization-id') || undefined;
+    const context = await requireTenantPermission(PERMISSIONS.LEADS_UPDATE, orgIdHeader);
+
+    const body = await req.json();
+    
+    const existing = await prisma.lead.findFirst({
+      where: { id: params.id, organizationId: context.organization.id },
+    });
+
+    if (!existing) {
+      return NextResponse.json({ success: false, error: 'Lead not found or access denied' }, { status: 404 });
+    }
+
+    const updatedLead = await prisma.lead.update({
+      where: { id: params.id },
+      data: { status: body.status },
+    });
+
+    await recordAuditLog({
+      organizationId: context.organization.id,
+      userId: context.user.id,
+      action: 'UPDATE_STATUS',
+      entity: 'Lead',
+      entityId: updatedLead.id,
+      metadata: { status: updatedLead.status },
+    });
+
+    return NextResponse.json({ success: true, lead: updatedLead });
+  } catch (error: unknown) {
+    const errMessage = error instanceof Error ? error.message : 'Failed to update lead status';
+    return NextResponse.json({ success: false, error: errMessage }, { status: 400 });
+  }
+}
+
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const orgIdHeader = req.headers.get('x-organization-id') || undefined;

@@ -11,6 +11,7 @@ export const leadSchema = z.object({
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).default('MEDIUM'),
   source: z.string().default('MANUAL'),
   ownerId: z.string().optional().nullable(),
+  estimatedValue: z.number().min(0).optional().nullable(),
 });
 
 export const convertLeadSchema = z.object({

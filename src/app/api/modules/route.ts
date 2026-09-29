@@ -9,7 +9,7 @@ import { recordAuditLog, AUDIT_ACTIONS } from '@/lib/audit';
 
 export async function GET(req: NextRequest) {
   try {
-    const context = await requireTenantPermission(PERMISSIONS.MODULES_MANAGE);
+    const context = await requireTenantPermission(PERMISSIONS.SETTINGS_VIEW);
     const { searchParams } = new URL(req.url);
     const targetOrgId = searchParams.get('organizationId') || context.organization.id;
 
@@ -30,10 +30,28 @@ export async function GET(req: NextRequest) {
       where: { organizationId: targetOrgId }
     });
 
+    const canManageModules = context.permissions.includes(PERMISSIONS.MODULES_MANAGE);
+
     // Also fetch list of all organizations if admin wants to manage other companies
-    const organizations = await prisma.organization.findMany({
+    const organizations = canManageModules ? await prisma.organization.findMany({
       select: { id: true, name: true, slug: true, industry: true }
-    });
+    }) : [];
+
+    let members: any[] = [];
+    let roles: any[] = [];
+    if (canManageModules) {
+      members = await prisma.membership.findMany({
+        where: { organizationId: targetOrgId },
+        include: {
+          user: { select: { id: true, name: true, email: true } },
+          role: { select: { id: true, name: true } },
+        }
+      });
+      roles = await prisma.role.findMany({
+        where: { organizationId: targetOrgId },
+        select: { id: true, name: true }
+      });
+    }
 
     return NextResponse.json({
       success: true,
@@ -43,6 +61,9 @@ export async function GET(req: NextRequest) {
         planEntitlements,
         organizationModules: orgModules,
         allOrganizations: organizations,
+        canManageModules,
+        members,
+        roles,
       }
     });
   } catch (error) {

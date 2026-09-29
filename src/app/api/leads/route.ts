@@ -31,6 +31,11 @@ export async function GET(req: NextRequest) {
       ];
     }
 
+    const org = await prisma.organization.findUnique({
+      where: { id: context.organization.id },
+      select: { currency: true }
+    });
+
     const leads = await prisma.lead.findMany({
       where,
       include: {
@@ -46,7 +51,7 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: 'desc' },
     });
 
-    return NextResponse.json({ success: true, leads });
+    return NextResponse.json({ success: true, leads, currency: org?.currency || '$' });
   } catch (error: unknown) {
     const errMessage = error instanceof Error ? error.message : 'Failed to fetch leads';
     return NextResponse.json({ success: false, error: errMessage }, { status: 400 });
