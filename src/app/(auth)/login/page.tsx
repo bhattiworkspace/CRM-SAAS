@@ -9,8 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('demo@acme.com');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -99,43 +99,6 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          {/* Quick Demo Credentials Box */}
-          <div className="mt-6 pt-6 border-t border-slate-100 bg-slate-50/80 -mx-4 -mb-4 p-4 rounded-b-lg">
-            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
-              Seeded Demo Accounts:
-            </p>
-            <div className="space-y-1.5 text-xs">
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail('demo@acme.com');
-                  setPassword('password123');
-                }}
-                className="w-full text-left p-2 rounded bg-white border border-slate-200 hover:border-brand-300 transition-colors flex justify-between items-center"
-              >
-                <div>
-                  <span className="font-semibold text-slate-800">Acme Corp (Owner)</span>
-                  <span className="block text-[10px] text-slate-500">demo@acme.com</span>
-                </div>
-                <span className="text-[10px] font-bold text-brand-600 bg-brand-50 px-1.5 py-0.5 rounded">Owner</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail('sales@acme.com');
-                  setPassword('password123');
-                }}
-                className="w-full text-left p-2 rounded bg-white border border-slate-200 hover:border-brand-300 transition-colors flex justify-between items-center"
-              >
-                <div>
-                  <span className="font-semibold text-slate-800">Acme Corp (Sales Rep)</span>
-                  <span className="block text-[10px] text-slate-500">sales@acme.com</span>
-                </div>
-                <span className="text-[10px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">Rep</span>
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>
