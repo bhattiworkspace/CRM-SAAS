@@ -153,6 +153,46 @@ export default function ModulesPage() {
     }
   }
 
+  async function handleBulkToggle(enable: boolean) {
+    try {
+      setTogglingCode('BULK');
+      setError(null);
+      setSuccessMessage(null);
+
+      // Optimistic update
+      const newAccess: Record<string, boolean> = {};
+      const moduleCodes = MODULE_DEFINITIONS.map(m => m.code);
+      moduleCodes.forEach(code => newAccess[code] = enable);
+      
+      const previousAccess = { ...moduleAccess };
+      setModuleAccess(newAccess);
+
+      const res = await fetch('/api/modules', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          moduleCodes,
+          enabled: enable,
+          organizationId: selectedOrgId || undefined,
+        }),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok || !json.success) {
+        setModuleAccess(previousAccess);
+        throw new Error(json.error || `Failed to ${enable ? 'enable' : 'disable'} all modules`);
+      }
+
+      setSuccessMessage(`Successfully ${enable ? 'ENABLED' : 'DISABLED'} all modules.`);
+      setTimeout(() => setSuccessMessage(null), 4000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to perform bulk action');
+    } finally {
+      setTogglingCode(null);
+    }
+  }
+
   const selectedOrg = organizations.find((o) => o.id === selectedOrgId);
 
   return (
@@ -170,18 +210,43 @@ export default function ModulesPage() {
 
         {/* Company Selector for Admin */}
         {organizations.length > 0 && (
-          <div className="flex items-center gap-2 bg-white p-2 rounded-lg border border-slate-200 shadow-xs">
-            <Building2 className="h-4 w-4 text-slate-400 shrink-0" />
-            <span className="text-xs font-semibold text-slate-600 shrink-0">Target Company:</span>
-            <Select
-              className="w-56 text-xs h-8"
-              value={selectedOrgId}
-              onChange={(e) => setSelectedOrgId(e.target.value)}
-              options={organizations.map((o) => ({
-                value: o.id,
-                label: `${o.name} (${o.slug})`,
-              }))}
-            />
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="flex items-center gap-2 bg-white p-2 rounded-lg border border-slate-200 shadow-xs">
+              <Building2 className="h-4 w-4 text-slate-400 shrink-0" />
+              <span className="text-xs font-semibold text-slate-600 shrink-0">Target Company:</span>
+              <Select
+                className="w-56 text-xs h-8"
+                value={selectedOrgId}
+                onChange={(e) => setSelectedOrgId(e.target.value)}
+                options={organizations.map((o) => ({
+                  value: o.id,
+                  label: `${o.name} (${o.slug})`,
+                }))}
+              />
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="text-xs h-8 border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                onClick={() => handleBulkToggle(true)}
+                disabled={togglingCode === 'BULK'}
+              >
+                {togglingCode === 'BULK' ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <CheckCircle2 className="h-3 w-3 mr-1" />}
+                Enable All
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="text-xs h-8 border-rose-200 text-rose-700 hover:bg-rose-50"
+                onClick={() => handleBulkToggle(false)}
+                disabled={togglingCode === 'BULK'}
+              >
+                {togglingCode === 'BULK' ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <X className="h-3 w-3 mr-1" />}
+                Disable All
+              </Button>
+            </div>
           </div>
         )}
       </div>

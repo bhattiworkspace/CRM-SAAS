@@ -22,7 +22,14 @@ interface LeadItem {
   source: string;
   createdAt: string;
   owner?: { id: string; name: string };
+  tasks?: Array<{
+    id: string;
+    title: string;
+    dueDate: string | null;
+    status: string;
+  }>;
 }
+
 
 export default function LeadsPage() {
   const [leads, setLeads] = useState<LeadItem[]>([]);
@@ -193,6 +200,116 @@ export default function LeadsPage() {
     }
   };
 
+  const isToday = (dateString: string | null) => {
+    if (!dateString) return false;
+    const date = new Date(dateString);
+    const today = new Date();
+    return date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear();
+  };
+
+  const isTomorrow = (dateString: string | null) => {
+    if (!dateString) return false;
+    const date = new Date(dateString);
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return date.getDate() === tomorrow.getDate() &&
+      date.getMonth() === tomorrow.getMonth() &&
+      date.getFullYear() === tomorrow.getFullYear();
+  };
+
+  const todayLeads = leads.filter(l => l.tasks?.some(t => isToday(t.dueDate)));
+  const tomorrowLeads = leads.filter(l => l.tasks?.some(t => isTomorrow(t.dueDate)));
+
+  const LeadTable = ({ leads: tableLeads }: { leads: LeadItem[] }) => (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Lead Name</TableHead>
+          <TableHead>Company</TableHead>
+          <TableHead>Contact</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead>Priority</TableHead>
+          <TableHead>Source</TableHead>
+          <TableHead>Assignee</TableHead>
+          <TableHead className="text-right">Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {tableLeads.map((lead) => (
+          <TableRow key={lead.id}>
+            <TableCell className="font-bold text-slate-900">
+              <a href={`/leads/${lead.id}`} className="hover:text-brand-600 hover:underline">
+                {lead.firstName} {lead.lastName}
+              </a>
+              {lead.title && <span className="block text-[10px] font-normal text-slate-500">{lead.title}</span>}
+            </TableCell>
+            <TableCell className="font-semibold text-slate-800">
+              {lead.companyName || '—'}
+            </TableCell>
+            <TableCell className="text-slate-600">
+              {lead.email || lead.phone || '—'}
+            </TableCell>
+            <TableCell>
+              <Badge
+                variant={
+                  lead.status === 'CONVERTED'
+                    ? 'success'
+                    : lead.status === 'QUALIFIED'
+                    ? 'info'
+                    : lead.status === 'NEW'
+                    ? 'purple'
+                    : 'default'
+                }
+              >
+                {lead.status}
+              </Badge>
+            </TableCell>
+            <TableCell>
+              <Badge
+                variant={
+                  lead.priority === 'URGENT'
+                    ? 'danger'
+                    : lead.priority === 'HIGH'
+                    ? 'warning'
+                    : 'outline'
+                }
+              >
+                {lead.priority}
+              </Badge>
+            </TableCell>
+            <TableCell className="text-slate-500 text-[11px]">{lead.source}</TableCell>
+            <TableCell className="text-slate-700 font-medium">{lead.owner?.name || 'Unassigned'}</TableCell>
+            <TableCell className="text-right">
+              {lead.status !== 'CONVERTED' ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setConvertLead(lead);
+                    setConvertForm({
+                      createDeal: true,
+                      dealName: `${lead.companyName || lead.lastName} Deal`,
+                      dealAmount: 15000,
+                    });
+                  }}
+                  className="gap-1.5 text-xs text-brand-700 hover:bg-brand-50"
+                >
+                  <ArrowRightLeft className="h-3.5 w-3.5" /> Convert
+                </Button>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 font-semibold">
+                  <CheckCircle className="h-3.5 w-3.5" /> Converted
+                </span>
+              )}
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+
   return (
     <div className="space-y-6">
       {/* Header Bar */}
@@ -262,93 +379,36 @@ export default function LeadsPage() {
           <p>Import prospects from Business Finder or create a lead manually to get started.</p>
         </div>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Lead Name</TableHead>
-              <TableHead>Company</TableHead>
-              <TableHead>Contact</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Priority</TableHead>
-              <TableHead>Source</TableHead>
-              <TableHead>Assignee</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {leads.map((lead) => (
-              <TableRow key={lead.id}>
-                <TableCell className="font-bold text-slate-900">
-                  <a href={`/leads/${lead.id}`} className="hover:text-brand-600 hover:underline">
-                    {lead.firstName} {lead.lastName}
-                  </a>
-                  {lead.title && <span className="block text-[10px] font-normal text-slate-500">{lead.title}</span>}
-                </TableCell>
-                <TableCell className="font-semibold text-slate-800">
-                  {lead.companyName || '—'}
-                </TableCell>
-                <TableCell className="text-slate-600">
-                  {lead.email || lead.phone || '—'}
-                </TableCell>
-                <TableCell>
-                  <Badge
-                    variant={
-                      lead.status === 'CONVERTED'
-                        ? 'success'
-                        : lead.status === 'QUALIFIED'
-                        ? 'info'
-                        : lead.status === 'NEW'
-                        ? 'purple'
-                        : 'default'
-                    }
-                  >
-                    {lead.status}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge
-                    variant={
-                      lead.priority === 'URGENT'
-                        ? 'danger'
-                        : lead.priority === 'HIGH'
-                        ? 'warning'
-                        : 'outline'
-                    }
-                  >
-                    {lead.priority}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-slate-500 text-[11px]">{lead.source}</TableCell>
-                <TableCell className="text-slate-700 font-medium">{lead.owner?.name || 'Unassigned'}</TableCell>
-                <TableCell className="text-right">
-                  {lead.status !== 'CONVERTED' ? (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setConvertLead(lead);
-                        setConvertForm({
-                          createDeal: true,
-                          dealName: `${lead.companyName || lead.lastName} Deal`,
-                          dealAmount: 15000,
-                        });
-                      }}
-                      className="gap-1.5 text-xs text-brand-700 hover:bg-brand-50"
-                    >
-                      <ArrowRightLeft className="h-3.5 w-3.5" /> Convert
-                    </Button>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 font-semibold">
-                      <CheckCircle className="h-3.5 w-3.5" /> Converted
-                    </span>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
+        <div className="space-y-8">
+          {/* Today's Follow up */}
+          {todayLeads.length > 0 && (
+            <div>
+              <h2 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-rose-500"></span>
+                Today's Follow up
+              </h2>
+              <LeadTable leads={todayLeads} />
+            </div>
+          )}
 
+          {/* Tomorrow's Follow up */}
+          {tomorrowLeads.length > 0 && (
+            <div>
+              <h2 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-amber-500"></span>
+                Tomorrow's Follow up
+              </h2>
+              <LeadTable leads={tomorrowLeads} />
+            </div>
+          )}
+
+          {/* All Leads */}
+          <div>
+            <h2 className="text-lg font-bold text-slate-800 mb-3">All Leads</h2>
+            <LeadTable leads={leads} />
+          </div>
+        </div>
+      )}
       {/* Create Lead Modal */}
       <Modal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} title="Create New Lead">
         <form onSubmit={handleCreateSubmit} className="space-y-4">

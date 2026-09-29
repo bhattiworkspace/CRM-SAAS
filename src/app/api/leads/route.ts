@@ -37,6 +37,11 @@ export async function GET(req: NextRequest) {
         owner: {
           select: { id: true, name: true, email: true, image: true },
         },
+        tasks: {
+          where: {
+            status: 'PENDING'
+          }
+        }
       },
       orderBy: { createdAt: 'desc' },
     });

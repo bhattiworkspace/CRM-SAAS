@@ -6,11 +6,6 @@ import { z } from 'zod';
 import { createErrorResponse, AppError } from '@/lib/utils/errors';
 import { recordAuditLog, AUDIT_ACTIONS } from '@/lib/audit';
 
-const moduleToggleSchema = z.object({
-  moduleCode: z.string(),
-  enabled: z.boolean(),
-  organizationId: z.string().optional(),
-});
 
 export async function GET(req: NextRequest) {
   try {
@@ -58,6 +53,13 @@ export async function GET(req: NextRequest) {
   }
 }
 
+const moduleToggleSchema = z.object({
+  moduleCode: z.string().optional(),
+  moduleCodes: z.array(z.string()).optional(),
+  enabled: z.boolean(),
+  organizationId: z.string().optional(),
+});
+
 export async function PUT(req: NextRequest) {
   try {
     const context = await requireTenantPermission(PERMISSIONS.MODULES_MANAGE);
@@ -70,26 +72,37 @@ export async function PUT(req: NextRequest) {
       throw new AppError('Invalid request body', 400);
     }
 
-    const { moduleCode, enabled, organizationId: customOrgId } = result.data;
+    const { moduleCode, moduleCodes, enabled, organizationId: customOrgId } = result.data;
     const organizationId = customOrgId || context.organization.id;
 
-    // Update or create the OrganizationModule override
-    const moduleRecord = await prisma.organizationModule.upsert({
-      where: { organizationId_moduleCode: { organizationId, moduleCode } },
-      update: { enabled },
-      create: { organizationId, moduleCode, enabled }
-    });
+    const codesToUpdate = moduleCodes || (moduleCode ? [moduleCode] : []);
 
-    await recordAuditLog({
-      organizationId,
-      userId,
-      action: enabled ? AUDIT_ACTIONS.MODULE_ENABLED : AUDIT_ACTIONS.MODULE_DISABLED,
-      entity: 'OrganizationModule',
-      entityId: moduleRecord.id,
-      metadata: { moduleCode, enabled }
-    });
+    if (codesToUpdate.length === 0) {
+      throw new AppError('No module codes provided', 400);
+    }
 
-    return NextResponse.json({ success: true, data: moduleRecord });
+    // Process sequentially to avoid DB pool exhaustion on Neon
+    const records = [];
+    for (const code of codesToUpdate) {
+      const moduleRecord = await prisma.organizationModule.upsert({
+        where: { organizationId_moduleCode: { organizationId, moduleCode: code } },
+        update: { enabled },
+        create: { organizationId, moduleCode: code, enabled }
+      });
+      
+      await recordAuditLog({
+        organizationId,
+        userId,
+        action: enabled ? AUDIT_ACTIONS.MODULE_ENABLED : AUDIT_ACTIONS.MODULE_DISABLED,
+        entity: 'OrganizationModule',
+        entityId: moduleRecord.id,
+        metadata: { moduleCode: code, enabled }
+      });
+      
+      records.push(moduleRecord);
+    }
+
+    return NextResponse.json({ success: true, data: records });
   } catch (error) {
     if (error instanceof AppError) {
       return createErrorResponse(error);
