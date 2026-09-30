@@ -1,11 +1,9 @@
 import { withAuth } from 'next-auth/middleware';
 
-if (!process.env.NEXTAUTH_SECRET) {
-  process.env.NEXTAUTH_SECRET = 'crm-saas-production-secret-key-v2-987654';
-}
+const secret = process.env.NEXTAUTH_SECRET || 'crm-saas-production-secret-key-v2-987654';
 
 export default withAuth({
-  secret: process.env.NEXTAUTH_SECRET,
+  secret,
   pages: {
     signIn: '/login',
   },
