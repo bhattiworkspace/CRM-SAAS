@@ -28,12 +28,16 @@ export default function LoginPage() {
       });
 
       if (res?.error) {
+        console.error('SignIn Error:', res.error);
         setError('Invalid email or password');
       } else {
+        console.log('SignIn Success:', res);
+        alert('Login successful! Redirecting to dashboard... If it bounces, check network tab.');
         router.push('/dashboard');
         router.refresh();
       }
     } catch (err: unknown) {
+      console.error('Catch Error:', err);
       setError('An unexpected error occurred');
     } finally {
       setIsLoading(false);
