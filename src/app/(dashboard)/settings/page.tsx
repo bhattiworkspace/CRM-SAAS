@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { Settings as SettingsIcon, Building2, Users, RefreshCw, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,10 +29,12 @@ interface OrgData {
 }
 
 export default function SettingsPage() {
+  const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState<'ORGANIZATION' | 'TEAM'>('ORGANIZATION');
   const [org, setOrg] = useState<OrgData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [userRole, setUserRole] = useState<string>('');
 
   const [form, setForm] = useState({
     name: '',
@@ -59,6 +62,16 @@ export default function SettingsPage() {
             timezone: data.organization.timezone || 'UTC',
             currency: data.organization.currency || 'USD',
           });
+          // Detect current user's role
+          const userEmail = (session?.user as { email?: string })?.email;
+          if (userEmail && data.organization.memberships) {
+            const membership = data.organization.memberships.find(
+              (m: { user: { email: string }; role: { name: string } }) => m.user.email === userEmail
+            );
+            if (membership) {
+              setUserRole(membership.role.name);
+            }
+          }
         }
       } catch (err) {
         console.error('Error loading organization settings:', err);
@@ -67,7 +80,7 @@ export default function SettingsPage() {
       }
     }
     fetchOrg();
-  }, []);
+  }, [session]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,6 +103,8 @@ export default function SettingsPage() {
       setSaving(false);
     }
   };
+
+  const isOwner = userRole === 'Owner';
 
   return (
     <div className="space-y-6 max-w-5xl">
@@ -126,12 +141,14 @@ export default function SettingsPage() {
         >
           <Users className="h-3.5 w-3.5" /> Team Members & Roles
         </button>
-        <a
-          href="/settings/modules"
-          className="px-4 py-1.5 text-xs font-semibold rounded-md transition-colors flex items-center gap-2 bg-slate-100 text-slate-700 hover:bg-slate-200 ml-auto border border-slate-300"
-        >
-          <ShieldCheck className="h-3.5 w-3.5 text-brand-600" /> Manage Module Controls & Toggles &rarr;
-        </a>
+        {isOwner && (
+          <a
+            href="/settings/modules"
+            className="px-4 py-1.5 text-xs font-semibold rounded-md transition-colors flex items-center gap-2 bg-slate-100 text-slate-700 hover:bg-slate-200 ml-auto border border-slate-300"
+          >
+            <ShieldCheck className="h-3.5 w-3.5 text-brand-600" /> Manage Module Controls & Toggles &rarr;
+          </a>
+        )}
       </div>
 
       {loading ? (
@@ -195,12 +212,12 @@ export default function SettingsPage() {
                 onChange={(e) => setForm({ ...form, currency: e.target.value })}
                 options={[
                   { value: 'USD', label: 'US Dollar ($)' },
-                  { value: 'EUR', label: 'Euro (€)' },
-                  { value: 'GBP', label: 'British Pound (£)' },
-                  { value: 'INR', label: 'Indian Rupee (₹)' },
+                  { value: 'EUR', label: 'Euro (\u20ac)' },
+                  { value: 'GBP', label: 'British Pound (\u00a3)' },
+                  { value: 'INR', label: 'Indian Rupee (\u20b9)' },
                   { value: 'AUD', label: 'Australian Dollar (A$)' },
                   { value: 'CAD', label: 'Canadian Dollar (C$)' },
-                  { value: 'JPY', label: 'Japanese Yen (¥)' },
+                  { value: 'JPY', label: 'Japanese Yen (\u00a5)' },
                 ]}
               />
             </div>
@@ -212,18 +229,20 @@ export default function SettingsPage() {
             </div>
           </form>
 
-          {/* Application Central Branding Config Box */}
-          <div className="p-4 bg-slate-50 border border-slate-200 rounded-md text-xs space-y-2">
-            <span className="font-bold text-slate-800 uppercase tracking-wider block text-[10px]">
-              Central Application Branding Config (`src/config/app.config.ts`):
-            </span>
-            <div className="grid grid-cols-2 gap-2 text-slate-600 font-mono">
-              <div>appName: <strong>{appConfig.appName}</strong></div>
-              <div>companyName: <strong>{appConfig.companyName}</strong></div>
-              <div>primaryColor: <strong>{appConfig.primaryColor}</strong></div>
-              <div>supportEmail: <strong>{appConfig.supportEmail}</strong></div>
+          {/* Application Central Branding Config Box - Owner Only */}
+          {isOwner && (
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-md text-xs space-y-2">
+              <span className="font-bold text-slate-800 uppercase tracking-wider block text-[10px]">
+                Central Application Branding Config (`src/config/app.config.ts`):
+              </span>
+              <div className="grid grid-cols-2 gap-2 text-slate-600 font-mono">
+                <div>appName: <strong>{appConfig.appName}</strong></div>
+                <div>companyName: <strong>{appConfig.companyName}</strong></div>
+                <div>primaryColor: <strong>{appConfig.primaryColor}</strong></div>
+                <div>supportEmail: <strong>{appConfig.supportEmail}</strong></div>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       ) : (
         <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-2xs space-y-4">
