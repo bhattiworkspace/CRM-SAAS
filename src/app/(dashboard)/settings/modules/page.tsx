@@ -221,12 +221,12 @@ export default function ModulesPage() {
   return (
     <div className="space-y-6 max-w-6xl">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-slate-200">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-line">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-            <Sliders className="h-6 w-6 text-brand-600" /> Module & Capability Admin Controls
+          <h1 className="text-2xl font-bold tracking-tight text-ink flex items-center gap-2">
+            <Sliders className="h-6 w-6 text-acc" /> Module & Capability Admin Controls
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-mute mt-1">
             Enable or disable specific CRM modules for companies and tenant organizations in real-time.
           </p>
         </div>
@@ -234,9 +234,9 @@ export default function ModulesPage() {
         {/* Company Selector for Admin */}
         {canManageModules && organizations.length > 0 && (
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-            <div className="flex items-center gap-2 bg-white p-2 rounded-lg border border-slate-200 shadow-xs">
-              <Building2 className="h-4 w-4 text-slate-400 shrink-0" />
-              <span className="text-xs font-semibold text-slate-600 shrink-0">Target Company:</span>
+            <div className="flex items-center gap-2 bg-surf p-2 rounded-lg border border-line shadow-xs">
+              <Building2 className="h-4 w-4 text-mute shrink-0" />
+              <span className="text-xs font-semibold text-mute shrink-0">Target Company:</span>
               <Select
                 className="w-56 text-xs h-8"
                 value={selectedOrgId}
@@ -294,21 +294,21 @@ export default function ModulesPage() {
 
       {/* Organization Status Banner */}
       {selectedOrg && (
-        <div className="bg-slate-900 text-white p-4 rounded-xl shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="bg-ink text-white p-4 rounded-xl shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-brand-600 flex items-center justify-center font-bold text-lg text-white">
+            <div className="h-10 w-10 rounded-lg bg-acc flex items-center justify-center font-bold text-lg text-white">
               {selectedOrg.name[0]}
             </div>
             <div>
               <h2 className="font-bold text-sm text-white flex items-center gap-2">
                 {selectedOrg.name} <Badge variant="info" className="text-[10px]">Active Tenant</Badge>
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-mute">
                 Industry: {selectedOrg.industry || 'General Business'} • Slug: {selectedOrg.slug}
               </p>
             </div>
           </div>
-          <div className="text-xs text-slate-400 flex items-center gap-2">
+          <div className="text-xs text-mute flex items-center gap-2">
             <span>Enabled Modules:</span>
             <Badge variant="success" className="font-bold">
               {Object.values(moduleAccess).filter(Boolean).length} / {MODULE_DEFINITIONS.length} Active
@@ -319,22 +319,22 @@ export default function ModulesPage() {
 
       {/* Settings Access Managers */}
       {canManageModules && members.length > 0 && (
-        <Card className="border-slate-200 shadow-xs">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-bold text-slate-900 flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-brand-600" /> Settings Access Managers
-            </CardTitle>
-            <CardDescription className="text-xs">
+        <div className="panel border-line shadow-xs">
+          <div className="mb-4" className="pb-3">
+            <h2 className="panel-title" className="text-sm font-bold text-ink flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-acc" /> Settings Access Managers
+            </h2>
+            <p className="text-mute text-sm mt-1" className="text-xs">
               Manage who has access to view and change organization settings and module toggles.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
+            </p>
+          </div>
+          <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {members.map((m) => (
-                <div key={m.id} className="flex items-center justify-between p-3 border border-slate-100 rounded-lg bg-slate-50/50">
+                <div key={m.id} className="flex items-center justify-between p-3 border border-line rounded-lg bg-slate-50/50">
                   <div className="flex flex-col">
-                    <span className="text-sm font-semibold text-slate-900">{m.user.name}</span>
-                    <span className="text-xs text-slate-500">{m.user.email}</span>
+                    <span className="text-sm font-semibold text-ink">{m.user.name}</span>
+                    <span className="text-xs text-mute">{m.user.email}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Select
@@ -362,19 +362,19 @@ export default function ModulesPage() {
                       }}
                       options={roles.map(r => ({ value: r.id, label: r.name }))}
                     />
-                    {updatingRole === m.id && <Loader2 className="h-3 w-3 animate-spin text-slate-400" />}
+                    {updatingRole === m.id && <Loader2 className="h-3 w-3 animate-spin text-mute" />}
                   </div>
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Module Grid */}
       {loading ? (
-        <div className="bg-white border border-slate-200 rounded-xl p-16 text-center text-xs text-slate-500 flex flex-col items-center justify-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-brand-600" />
+        <div className="bg-surf border border-line rounded-xl p-16 text-center text-xs text-mute flex flex-col items-center justify-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-acc" />
           <span>Loading module settings for tenant...</span>
         </div>
       ) : (
@@ -388,37 +388,37 @@ export default function ModulesPage() {
                 key={mod.code}
                 className={`transition-all duration-200 flex flex-col justify-between ${
                   isEnabled
-                    ? 'border-emerald-300 bg-white shadow-xs ring-1 ring-emerald-500/10'
-                    : 'border-slate-200 bg-slate-50/50 opacity-80'
+                    ? 'border-emerald-300 bg-surf shadow-xs ring-1 ring-emerald-500/10'
+                    : 'border-line bg-slate-50/50 opacity-80'
                 }`}
               >
-                <CardHeader className="pb-3">
+                <div className="mb-4" className="pb-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className={`p-2.5 rounded-lg ${isEnabled ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'}`}>
+                      <div className={`p-2.5 rounded-lg ${isEnabled ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-mute'}`}>
                         {mod.icon}
                       </div>
                       <div>
-                        <Badge variant="outline" className="text-[10px] text-slate-500 uppercase tracking-wider mb-0.5">
+                        <Badge variant="outline" className="text-[10px] text-mute uppercase tracking-wider mb-0.5">
                           {mod.category}
                         </Badge>
-                        <CardTitle className="text-sm font-bold text-slate-900">{mod.name}</CardTitle>
+                        <h2 className="panel-title" className="text-sm font-bold text-ink">{mod.name}</h2>
                       </div>
                     </div>
                   </div>
-                  <CardDescription className="text-xs text-slate-500 mt-2 leading-relaxed">
+                  <p className="text-mute text-sm mt-1" className="text-xs text-mute mt-2 leading-relaxed">
                     {mod.description}
-                  </CardDescription>
-                </CardHeader>
+                  </p>
+                </div>
 
-                <CardContent className="pt-2 border-t border-slate-100 flex items-center justify-between mt-auto">
+                <div className="pt-2 border-t border-line flex items-center justify-between mt-auto">
                   <div className="flex items-center gap-1.5">
                     {isEnabled ? (
                       <Badge variant="success" className="text-[11px] gap-1 px-2 py-0.5">
                         <Check className="h-3 w-3" /> Active for Company
                       </Badge>
                     ) : (
-                      <Badge variant="outline" className="text-[11px] gap-1 text-slate-400 bg-slate-100 px-2 py-0.5">
+                      <Badge variant="outline" className="text-[11px] gap-1 text-mute bg-surf2 px-2 py-0.5">
                         <X className="h-3 w-3" /> Disabled
                       </Badge>
                     )}
@@ -444,10 +444,10 @@ export default function ModulesPage() {
                       )}
                     </Button>
                   ) : (
-                    <span className="text-[10px] text-slate-400">View Only</span>
+                    <span className="text-[10px] text-mute">View Only</span>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             );
           })}
         </div>

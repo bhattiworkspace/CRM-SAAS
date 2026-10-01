@@ -108,25 +108,25 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6 max-w-5xl">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-line">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-            <SettingsIcon className="h-6 w-6 text-brand-600" /> Settings & Organization
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink flex items-center gap-2">
+            <SettingsIcon className="h-6 w-6 text-acc" /> Settings & Organization
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+          <p className="text-xs sm:text-sm text-mute mt-0.5">
             Configure CRM branding, team permissions, and tenant details
           </p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs flex gap-2">
+      <div className="bg-surf p-3 rounded-lg border border-line shadow-2xs flex gap-2">
         <button
           onClick={() => setActiveTab('ORGANIZATION')}
           className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-colors flex items-center gap-2 ${
             activeTab === 'ORGANIZATION'
-              ? 'bg-brand-600 text-white shadow-2xs'
-              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              ? 'bg-acc text-white shadow-2xs'
+              : 'bg-surf2 text-mute hover:bg-slate-200'
           }`}
         >
           <Building2 className="h-3.5 w-3.5" /> Organization Profile
@@ -135,8 +135,8 @@ export default function SettingsPage() {
           onClick={() => setActiveTab('TEAM')}
           className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-colors flex items-center gap-2 ${
             activeTab === 'TEAM'
-              ? 'bg-brand-600 text-white shadow-2xs'
-              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              ? 'bg-acc text-white shadow-2xs'
+              : 'bg-surf2 text-mute hover:bg-slate-200'
           }`}
         >
           <Users className="h-3.5 w-3.5" /> Team Members & Roles
@@ -144,22 +144,22 @@ export default function SettingsPage() {
         {isOwner && (
           <a
             href="/settings/modules"
-            className="px-4 py-1.5 text-xs font-semibold rounded-md transition-colors flex items-center gap-2 bg-slate-100 text-slate-700 hover:bg-slate-200 ml-auto border border-slate-300"
+            className="px-4 py-1.5 text-xs font-semibold rounded-md transition-colors flex items-center gap-2 bg-surf2 text-ink hover:bg-slate-200 ml-auto border border-line"
           >
-            <ShieldCheck className="h-3.5 w-3.5 text-brand-600" /> Manage Module Controls & Toggles &rarr;
+            <ShieldCheck className="h-3.5 w-3.5 text-acc" /> Manage Module Controls & Toggles &rarr;
           </a>
         )}
       </div>
 
       {loading ? (
-        <div className="bg-white border border-slate-200 rounded-lg p-12 text-center text-xs text-slate-500 flex items-center justify-center gap-2">
-          <RefreshCw className="h-5 w-5 animate-spin text-brand-600" />
+        <div className="bg-surf border border-line rounded-lg p-12 text-center text-xs text-mute flex items-center justify-center gap-2">
+          <RefreshCw className="h-5 w-5 animate-spin text-acc" />
           <span>Loading settings...</span>
         </div>
       ) : activeTab === 'ORGANIZATION' ? (
-        <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-2xs space-y-6">
+        <div className="bg-surf p-6 rounded-lg border border-line shadow-2xs space-y-6">
           <form onSubmit={handleSave} className="space-y-4">
-            <h2 className="text-sm font-bold text-slate-900 pb-2 border-b border-slate-100">
+            <h2 className="text-sm font-bold text-ink pb-2 border-b border-line">
               General Organization Info
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -222,7 +222,7 @@ export default function SettingsPage() {
               />
             </div>
 
-            <div className="pt-4 flex justify-end border-t border-slate-100">
+            <div className="pt-4 flex justify-end border-t border-line">
               <Button type="submit" isLoading={saving}>
                 Save Changes
               </Button>
@@ -231,11 +231,11 @@ export default function SettingsPage() {
 
           {/* Application Central Branding Config Box - Owner Only */}
           {isOwner && (
-            <div className="p-4 bg-slate-50 border border-slate-200 rounded-md text-xs space-y-2">
-              <span className="font-bold text-slate-800 uppercase tracking-wider block text-[10px]">
+            <div className="p-4 bg-surf2 border border-line rounded-md text-xs space-y-2">
+              <span className="font-bold text-ink uppercase tracking-wider block text-[10px]">
                 Central Application Branding Config (`src/config/app.config.ts`):
               </span>
-              <div className="grid grid-cols-2 gap-2 text-slate-600 font-mono">
+              <div className="grid grid-cols-2 gap-2 text-mute font-mono">
                 <div>appName: <strong>{appConfig.appName}</strong></div>
                 <div>companyName: <strong>{appConfig.companyName}</strong></div>
                 <div>primaryColor: <strong>{appConfig.primaryColor}</strong></div>
@@ -245,9 +245,9 @@ export default function SettingsPage() {
           )}
         </div>
       ) : (
-        <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-2xs space-y-4">
-          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-            <h2 className="text-sm font-bold text-slate-900">Organization Members & Roles</h2>
+        <div className="bg-surf p-6 rounded-lg border border-line shadow-2xs space-y-4">
+          <div className="flex items-center justify-between pb-2 border-b border-line">
+            <h2 className="text-sm font-bold text-ink">Organization Members & Roles</h2>
           </div>
 
           <Table>
@@ -262,8 +262,8 @@ export default function SettingsPage() {
             <TableBody>
               {org?.memberships.map((m) => (
                 <TableRow key={m.id}>
-                  <TableCell className="font-bold text-slate-900">{m.user.name}</TableCell>
-                  <TableCell className="text-slate-600">{m.user.email}</TableCell>
+                  <TableCell className="font-bold text-ink">{m.user.name}</TableCell>
+                  <TableCell className="text-mute">{m.user.email}</TableCell>
                   <TableCell>
                     <Badge variant="purple" className="gap-1">
                       <ShieldCheck className="h-3 w-3" /> {m.role.name}

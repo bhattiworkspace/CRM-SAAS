@@ -86,18 +86,18 @@ export default function ActivitiesPage() {
       case 'EMAIL':
         return <Mail className="h-4 w-4 text-amber-600" />;
       default:
-        return <FileText className="h-4 w-4 text-slate-600" />;
+        return <FileText className="h-4 w-4 text-mute" />;
     }
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-line">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-            <ActivityIcon className="h-6 w-6 text-brand-600" /> Activity Log
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink flex items-center gap-2">
+            <ActivityIcon className="h-6 w-6 text-acc" /> Activity Log
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+          <p className="text-xs sm:text-sm text-mute mt-0.5">
             Audit history of logged calls, meetings, emails, and notes
           </p>
         </div>
@@ -107,15 +107,15 @@ export default function ActivitiesPage() {
       </div>
 
       {/* Filter Tabs */}
-      <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs flex gap-2">
+      <div className="bg-surf p-3 rounded-lg border border-line shadow-2xs flex gap-2">
         {['ALL', 'CALL', 'MEETING', 'EMAIL', 'NOTE', 'SYSTEM'].map((type) => (
           <button
             key={type}
             onClick={() => setTypeFilter(type)}
             className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors ${
               typeFilter === type
-                ? 'bg-brand-600 text-white shadow-2xs'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                ? 'bg-acc text-white shadow-2xs'
+                : 'bg-surf2 text-mute hover:bg-slate-200'
             }`}
           >
             {type}
@@ -125,35 +125,35 @@ export default function ActivitiesPage() {
 
       {/* Activity Timeline Feed */}
       {loading ? (
-        <div className="bg-white border border-slate-200 rounded-lg p-12 text-center text-xs text-slate-500 flex items-center justify-center gap-2">
-          <RefreshCw className="h-5 w-5 animate-spin text-brand-600" />
+        <div className="bg-surf border border-line rounded-lg p-12 text-center text-xs text-mute flex items-center justify-center gap-2">
+          <RefreshCw className="h-5 w-5 animate-spin text-acc" />
           <span>Loading activity log...</span>
         </div>
       ) : activities.length === 0 ? (
-        <div className="bg-white border border-slate-200 rounded-lg p-12 text-center text-xs text-slate-500">
+        <div className="bg-surf border border-line rounded-lg p-12 text-center text-xs text-mute">
           No activities found.
         </div>
       ) : (
-        <div className="bg-white border border-slate-200 rounded-lg divide-y divide-slate-100 shadow-2xs">
+        <div className="bg-surf border border-line rounded-lg divide-y divide-slate-100 shadow-2xs">
           {activities.map((act) => (
             <div key={act.id} className="p-4 hover:bg-slate-50/70 transition-colors flex items-start gap-4 text-xs">
-              <div className="h-9 w-9 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 border border-slate-200">
+              <div className="h-9 w-9 rounded-lg bg-surf2 flex items-center justify-center shrink-0 border border-line">
                 {getIcon(act.type)}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-bold text-slate-900 text-sm">{act.title}</span>
-                  <span className="text-[10px] text-slate-400 font-medium">
+                  <span className="font-bold text-ink text-sm">{act.title}</span>
+                  <span className="text-[10px] text-mute font-medium">
                     {new Date(act.createdAt).toLocaleString()}
                   </span>
                 </div>
                 {act.description && (
-                  <p className="text-slate-600 mt-1 leading-relaxed text-xs">{act.description}</p>
+                  <p className="text-mute mt-1 leading-relaxed text-xs">{act.description}</p>
                 )}
-                <div className="mt-2 flex items-center gap-3 text-[11px] text-slate-500">
-                  <span>Logged by: <strong className="text-slate-700">{act.createdBy.name}</strong></span>
-                  {act.company && <span>• Company: <strong className="text-slate-700">{act.company.name}</strong></span>}
-                  {act.deal && <span>• Deal: <strong className="text-slate-700">{act.deal.name}</strong></span>}
+                <div className="mt-2 flex items-center gap-3 text-[11px] text-mute">
+                  <span>Logged by: <strong className="text-ink">{act.createdBy.name}</strong></span>
+                  {act.company && <span>• Company: <strong className="text-ink">{act.company.name}</strong></span>}
+                  {act.deal && <span>• Deal: <strong className="text-ink">{act.deal.name}</strong></span>}
                 </div>
               </div>
             </div>
@@ -183,18 +183,18 @@ export default function ActivitiesPage() {
             onChange={(e) => setLogForm({ ...logForm, title: e.target.value })}
           />
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+            <label className="block text-xs font-semibold text-ink uppercase tracking-wider mb-1">
               Details & Notes
             </label>
             <textarea
               rows={3}
               value={logForm.description}
               onChange={(e) => setLogForm({ ...logForm, description: e.target.value })}
-              className="w-full rounded-md border border-slate-300 p-2 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full rounded-md border border-line p-2 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>
 
-          <div className="pt-4 flex justify-end gap-2 border-t border-slate-100">
+          <div className="pt-4 flex justify-end gap-2 border-t border-line">
             <Button type="button" variant="outline" onClick={() => setIsLogOpen(false)}>
               Cancel
             </Button>

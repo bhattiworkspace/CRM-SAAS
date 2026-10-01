@@ -86,12 +86,12 @@ export default function CompaniesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-line">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-            <Building2 className="h-6 w-6 text-brand-600" /> Company Directory
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink flex items-center gap-2">
+            <Building2 className="h-6 w-6 text-acc" /> Company Directory
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+          <p className="text-xs sm:text-sm text-mute mt-0.5">
             Manage client and target business accounts
           </p>
         </div>
@@ -101,23 +101,23 @@ export default function CompaniesPage() {
       </div>
 
       {/* Search */}
-      <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-2xs flex items-center justify-between">
+      <div className="bg-surf p-4 rounded-lg border border-line shadow-2xs flex items-center justify-between">
         <div className="relative w-full sm:w-80">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-mute" />
           <input
             type="search"
             placeholder="Search companies by name or website..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200 rounded-md pl-9 pr-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className="w-full bg-surf2 border border-line rounded-md pl-9 pr-3 py-1.5 text-xs text-ink focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
       </div>
 
       {/* Table */}
       {loading ? (
-        <div className="bg-white border border-slate-200 rounded-lg p-12 text-center text-xs text-slate-500 flex items-center justify-center gap-2">
-          <RefreshCw className="h-5 w-5 animate-spin text-brand-600" />
+        <div className="bg-surf border border-line rounded-lg p-12 text-center text-xs text-mute flex items-center justify-center gap-2">
+          <RefreshCw className="h-5 w-5 animate-spin text-acc" />
           <span>Loading companies...</span>
         </div>
       ) : error ? (
@@ -125,9 +125,9 @@ export default function CompaniesPage() {
           {error}
         </div>
       ) : companies.length === 0 ? (
-        <div className="bg-white border border-slate-200 rounded-lg p-12 text-center text-xs text-slate-500 space-y-2">
+        <div className="bg-surf border border-line rounded-lg p-12 text-center text-xs text-mute space-y-2">
           <Building2 className="h-8 w-8 text-slate-300 mx-auto" />
-          <p className="font-semibold text-slate-700">No companies found.</p>
+          <p className="font-semibold text-ink">No companies found.</p>
         </div>
       ) : (
         <Table>
@@ -144,22 +144,22 @@ export default function CompaniesPage() {
           <TableBody>
             {companies.map((company) => (
               <TableRow key={company.id}>
-                <TableCell className="font-bold text-slate-900">
+                <TableCell className="font-bold text-ink">
                   <a href={`/companies/${company.id}`} className="hover:text-brand-600 hover:underline">
                     {company.name}
                   </a>
                   {company.providerId && (
-                    <span className="block text-[10px] text-brand-600 font-normal">Imported Provider Record</span>
+                    <span className="block text-[10px] text-acc font-normal">Imported Provider Record</span>
                   )}
                 </TableCell>
-                <TableCell className="text-slate-600">{company.industry || '—'}</TableCell>
+                <TableCell className="text-mute">{company.industry || '—'}</TableCell>
                 <TableCell>
                   {company.website ? (
                     <a
                       href={company.website.startsWith('http') ? company.website : `https://${company.website}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-brand-600 hover:underline text-xs"
+                      className="inline-flex items-center gap-1 text-acc hover:underline text-xs"
                     >
                       {company.website} <ExternalLink className="h-3 w-3" />
                     </a>
@@ -167,9 +167,9 @@ export default function CompaniesPage() {
                     '—'
                   )}
                 </TableCell>
-                <TableCell className="text-slate-600">{company.phone || '—'}</TableCell>
-                <TableCell className="font-semibold text-slate-800">{company._count?.contacts || 0}</TableCell>
-                <TableCell className="font-semibold text-slate-800">{company._count?.deals || 0}</TableCell>
+                <TableCell className="text-mute">{company.phone || '—'}</TableCell>
+                <TableCell className="font-semibold text-ink">{company._count?.contacts || 0}</TableCell>
+                <TableCell className="font-semibold text-ink">{company._count?.deals || 0}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -202,7 +202,7 @@ export default function CompaniesPage() {
               onChange={(e) => setCreateForm({ ...createForm, phone: e.target.value })}
             />
           </div>
-          <div className="pt-4 flex justify-end gap-2 border-t border-slate-100">
+          <div className="pt-4 flex justify-end gap-2 border-t border-line">
             <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
               Cancel
             </Button>

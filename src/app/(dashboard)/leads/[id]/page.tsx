@@ -271,12 +271,19 @@ export default function LeadDetailPage() {
                   value={newFollowUpTitle}
                   onChange={e => setNewFollowUpTitle(e.target.value)}
                 />
-                <input 
-                  className="input w-40" 
-                  type="date"
-                  value={newFollowUpDate}
-                  onChange={e => setNewFollowUpDate(e.target.value)}
-                />
+                <div className="relative flex items-center border border-line rounded bg-bg focus-within:border-acc transition-colors">
+                  <input 
+                    className="w-10 h-full opacity-0 absolute left-0 top-0 cursor-pointer z-10" 
+                    type="date"
+                    title="Set Date"
+                    value={newFollowUpDate}
+                    onChange={e => setNewFollowUpDate(e.target.value)}
+                  />
+                  <div className="w-10 h-full flex items-center justify-center text-mute pointer-events-none">
+                    <svg className="ic w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                  </div>
+                  {newFollowUpDate && <span className="pr-3 text-sm text-ink pointer-events-none">{new Date(newFollowUpDate).toLocaleDateString()}</span>}
+                </div>
                 <button type="submit" disabled={creatingFollowUp} className="btn-primary">Add</button>
               </form>
             </div>
@@ -284,16 +291,23 @@ export default function LeadDetailPage() {
 
           {activeTab === 'activity' && (
             <div className="space-y-3">
+              <div className="text-sm border-b border-line pb-3 last:border-0 last:pb-0">
+                <div className="flex justify-between items-start mb-0.5">
+                  <span className="font-semibold text-ink">CREATE — Lead</span>
+                  <span className="text-xs text-mute">{new Date(lead.createdAt).toLocaleString()}</span>
+                </div>
+                <p className="text-mute text-xs">By {lead.owner?.name || 'System'}</p>
+              </div>
               {auditLogs.map((log: any) => (
                 <div key={log.id} className="text-sm border-b border-line pb-3 last:border-0 last:pb-0">
                   <div className="flex justify-between items-start mb-0.5">
                     <span className="font-semibold text-ink">{log.action} — {log.entity}</span>
-                    <span className="text-xs text-mute">{new Date(log.timestamp).toLocaleDateString()}</span>
+                    <span className="text-xs text-mute">{new Date(log.timestamp).toLocaleString()}</span>
                   </div>
                   <p className="text-mute text-xs">By {log.user?.name || 'System'}</p>
                 </div>
               ))}
-              {auditLogs.length === 0 && <div className="text-mute text-sm text-center py-6">No activity recorded yet.</div>}
+              {auditLogs.length === 0 && <div className="text-mute text-sm text-center py-6">No additional activity recorded yet.</div>}
             </div>
           )}
 

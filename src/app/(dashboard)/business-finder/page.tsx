@@ -114,12 +114,12 @@ export default function BusinessFinderPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-line">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-            <Search className="h-6 w-6 text-brand-600" /> Business Finder
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink flex items-center gap-2">
+            <Search className="h-6 w-6 text-acc" /> Business Finder
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+          <p className="text-xs sm:text-sm text-mute mt-0.5">
             Discover potential business prospects and bulk import them directly into your CRM
           </p>
         </div>
@@ -131,7 +131,7 @@ export default function BusinessFinderPage() {
       </div>
 
       {/* Search Filter Form */}
-      <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-2xs">
+      <div className="bg-surf p-5 rounded-lg border border-line shadow-2xs">
         <form onSubmit={handleSearch} className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Input
             label="Industry / Keyword"
@@ -155,7 +155,7 @@ export default function BusinessFinderPage() {
 
       {/* Provider Name Badge */}
       {providerName && (
-        <div className="flex items-center justify-between text-xs text-slate-500">
+        <div className="flex items-center justify-between text-xs text-mute">
           <span className="flex items-center gap-1.5 font-medium">
             <ShieldCheck className="h-4 w-4 text-emerald-600" /> Data Provider Adapter: <strong>{providerName}</strong>
           </span>
@@ -165,26 +165,26 @@ export default function BusinessFinderPage() {
 
       {/* Results Grid */}
       {loading ? (
-        <div className="bg-white border border-slate-200 rounded-lg p-12 text-center text-xs text-slate-500 flex flex-col items-center gap-2">
-          <RefreshCw className="h-6 w-6 animate-spin text-brand-600" />
+        <div className="bg-surf border border-line rounded-lg p-12 text-center text-xs text-mute flex flex-col items-center gap-2">
+          <RefreshCw className="h-6 w-6 animate-spin text-acc" />
           <span>Searching business directory...</span>
         </div>
       ) : results.length === 0 ? (
-        <div className="bg-white border border-slate-200 rounded-lg p-12 text-center text-xs text-slate-500 space-y-2">
+        <div className="bg-surf border border-line rounded-lg p-12 text-center text-xs text-mute space-y-2">
           <Building2 className="h-8 w-8 text-slate-300 mx-auto" />
-          <p className="font-semibold text-slate-700">No businesses found for criteria.</p>
+          <p className="font-semibold text-ink">No businesses found for criteria.</p>
           <p>Try searching for broader keywords or locations.</p>
         </div>
       ) : (
         <div className="space-y-4">
           {/* Select All Bar */}
-          <div className="flex items-center justify-between px-4 py-2 bg-slate-100/70 border border-slate-200 rounded-md text-xs font-semibold text-slate-700">
+          <div className="flex items-center justify-between px-4 py-2 bg-slate-100/70 border border-line rounded-md text-xs font-semibold text-ink">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
                 checked={selectedIds.length === results.length && results.length > 0}
                 onChange={toggleSelectAll}
-                className="rounded border-slate-300 text-brand-600 h-4 w-4"
+                className="rounded border-line text-acc h-4 w-4"
               />
               <span>Select All Results ({results.length})</span>
             </label>
@@ -197,10 +197,10 @@ export default function BusinessFinderPage() {
               return (
                 <div
                   key={biz.providerId}
-                  className={`bg-white p-5 rounded-lg border transition-all space-y-3 relative ${
+                  className={`bg-surf p-5 rounded-lg border transition-all space-y-3 relative ${
                     isSelected
-                      ? 'border-brand-500 ring-2 ring-brand-100 shadow-sm'
-                      : 'border-slate-200 hover:border-slate-300'
+                      ? 'border-brand-500 ring-2 ring-brand-100 shadow-none'
+                      : 'border-line hover:border-slate-300'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -209,12 +209,12 @@ export default function BusinessFinderPage() {
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => toggleSelect(biz.providerId)}
-                        className="mt-1 rounded border-slate-300 text-brand-600 h-4 w-4 cursor-pointer"
+                        className="mt-1 rounded border-line text-acc h-4 w-4 cursor-pointer"
                       />
                       <div>
-                        <h3 className="font-bold text-sm text-slate-900 leading-snug">{biz.name}</h3>
+                        <h3 className="font-bold text-sm text-ink leading-snug">{biz.name}</h3>
                         {biz.category && (
-                          <span className="text-[11px] font-medium text-slate-500 block mt-0.5">{biz.category}</span>
+                          <span className="text-[11px] font-medium text-mute block mt-0.5">{biz.category}</span>
                         )}
                       </div>
                     </div>
@@ -229,7 +229,7 @@ export default function BusinessFinderPage() {
                     )}
                   </div>
 
-                  <div className="space-y-1 text-xs text-slate-600 pt-1 border-t border-slate-100">
+                  <div className="space-y-1 text-xs text-mute pt-1 border-t border-line">
                     {biz.address && <p className="truncate">📍 {biz.address}</p>}
                     {biz.phone && <p>📞 {biz.phone}</p>}
                     {biz.website && (
@@ -239,7 +239,7 @@ export default function BusinessFinderPage() {
                           href={biz.website.startsWith('http') ? biz.website : `https://${biz.website}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-brand-600 hover:underline inline-flex items-center gap-0.5 font-medium"
+                          className="text-acc hover:underline inline-flex items-center gap-0.5 font-medium"
                         >
                           {biz.website} <ExternalLink className="h-3 w-3" />
                         </a>
@@ -251,7 +251,7 @@ export default function BusinessFinderPage() {
                     <div className="flex items-center gap-1 text-[11px] font-bold text-amber-600">
                       <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
                       <span>{biz.rating}</span>
-                      {biz.reviewCount && <span className="text-slate-400 font-normal">({biz.reviewCount} reviews)</span>}
+                      {biz.reviewCount && <span className="text-mute font-normal">({biz.reviewCount} reviews)</span>}
                     </div>
                   )}
                 </div>
@@ -274,17 +274,17 @@ export default function BusinessFinderPage() {
         <div className="space-y-4">
           {!importStats ? (
             <>
-              <p className="text-xs text-slate-600">
+              <p className="text-xs text-mute">
                 You have selected <strong>{selectedIds.length}</strong> business prospect(s) for bulk import.
               </p>
 
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-md text-xs space-y-1">
-                <p className="font-semibold text-slate-800">Duplicate Handling Strategy:</p>
-                <p className="text-slate-600">• Checks existing CRM Companies by Provider ID, website, or phone.</p>
-                <p className="text-slate-600">• Reuses existing Company if matched; creates new Leads tied to Company.</p>
+              <div className="p-3 bg-surf2 border border-line rounded-md text-xs space-y-1">
+                <p className="font-semibold text-ink">Duplicate Handling Strategy:</p>
+                <p className="text-mute">• Checks existing CRM Companies by Provider ID, website, or phone.</p>
+                <p className="text-mute">• Reuses existing Company if matched; creates new Leads tied to Company.</p>
               </div>
 
-              <div className="pt-4 flex justify-end gap-2 border-t border-slate-100">
+              <div className="pt-4 flex justify-end gap-2 border-t border-line">
                 <Button variant="outline" onClick={() => setIsImportModalOpen(false)}>
                   Cancel
                 </Button>

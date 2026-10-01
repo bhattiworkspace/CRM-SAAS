@@ -93,21 +93,21 @@ export default function CompanyDetailPage() {
     }
   };
 
-  if (loading) return <div className="p-8 text-center text-slate-500">Loading company details...</div>;
+  if (loading) return <div className="p-8 text-center text-mute">Loading company details...</div>;
   if (error || !company) return <div className="p-8 text-center text-rose-500">{error || 'Company not found'}</div>;
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
-      <div className="flex items-center justify-between pb-4 border-b border-slate-200">
+      <div className="flex items-center justify-between pb-4 border-b border-line">
         <div className="flex items-center gap-4">
           <Button variant="outline" size="sm" onClick={() => router.push('/companies')} className="h-8 w-8 p-0">
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-ink flex items-center gap-2">
               {company.name}
             </h1>
-            <p className="text-sm text-slate-500">{company.industry || 'No Industry'} • {company.size || 'Unknown Size'}</p>
+            <p className="text-sm text-mute">{company.industry || 'No Industry'} • {company.size || 'Unknown Size'}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -119,49 +119,49 @@ export default function CompanyDetailPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
         <div className="space-y-6">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-bold text-slate-500 uppercase">Company Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <div className="panel">
+            <div className="mb-4" className="pb-3">
+              <h2 className="panel-title" className="text-sm font-bold text-mute uppercase">Company Information</h2>
+            </div>
+            <div className="space-y-4">
               <div className="flex items-start gap-3 text-sm">
-                <Globe className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
-                <span className="font-medium text-slate-900">
-                  {company.domain ? <a href={`https://${company.domain}`} target="_blank" rel="noreferrer" className="text-brand-600 hover:underline">{company.domain}</a> : '—'}
+                <Globe className="h-4 w-4 text-mute shrink-0 mt-0.5" />
+                <span className="font-medium text-ink">
+                  {company.domain ? <a href={`https://${company.domain}`} target="_blank" rel="noreferrer" className="text-acc hover:underline">{company.domain}</a> : '—'}
                 </span>
               </div>
               <div className="flex items-start gap-3 text-sm">
-                <Building className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
-                <span className="font-medium text-slate-900">{company.industry || '—'}</span>
+                <Building className="h-4 w-4 text-mute shrink-0 mt-0.5" />
+                <span className="font-medium text-ink">{company.industry || '—'}</span>
               </div>
               <div className="flex items-start gap-3 text-sm">
-                <User className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
+                <User className="h-4 w-4 text-mute shrink-0 mt-0.5" />
                 <div>
-                  <span className="text-slate-500 text-xs block">Assigned Owner</span>
-                  <span className="font-medium text-slate-900">{company.owner?.name || 'Unassigned'}</span>
+                  <span className="text-mute text-xs block">Assigned Owner</span>
+                  <span className="font-medium text-ink">{company.owner?.name || 'Unassigned'}</span>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          <Card className="border-brand-200 bg-brand-50/30">
-            <CardHeader className="pb-3 flex flex-row items-center justify-between">
-              <CardTitle className="text-sm font-bold text-brand-700 flex items-center gap-2">
+          <div className="panel border-brand-200 bg-brand-50/30">
+            <div className="mb-4" className="pb-3 flex flex-row items-center justify-between">
+              <h2 className="panel-title" className="text-sm font-bold text-acc flex items-center gap-2">
                 <Sparkles className="h-4 w-4" /> AI Assistant
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+              </h2>
+            </div>
+            <div>
               {aiSummary ? (
-                <div className="text-xs text-slate-700 whitespace-pre-wrap">{aiSummary}</div>
+                <div className="text-xs text-ink whitespace-pre-wrap">{aiSummary}</div>
               ) : (
                 <div className="text-center">
-                  <Button size="sm" onClick={handleGenerateSummary} isLoading={loadingAi} className="w-full bg-brand-600 hover:bg-brand-700">
+                  <Button size="sm" onClick={handleGenerateSummary} isLoading={loadingAi} className="w-full bg-acc hover:bg-brand-700">
                     Generate Company Summary
                   </Button>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
         <div className="md:col-span-2">
@@ -178,35 +178,35 @@ export default function CompanyDetailPage() {
           
           {activeTab === 'activity' && (
             <div className="space-y-4">
-              <Card>
-                <CardContent className="p-4">
+              <div className="panel">
+                <div className="p-4">
                   <div className="space-y-4">
                     {company.activities?.length > 0 ? company.activities.map((act: any) => (
-                      <div key={act.id} className="flex gap-3 text-sm border-b border-slate-100 pb-3 last:border-0">
-                        <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-                          <Activity className="h-4 w-4 text-slate-500" />
+                      <div key={act.id} className="flex gap-3 text-sm border-b border-line pb-3 last:border-0">
+                        <div className="h-8 w-8 rounded-full bg-surf2 flex items-center justify-center shrink-0">
+                          <Activity className="h-4 w-4 text-mute" />
                         </div>
                         <div>
-                          <p className="font-semibold text-slate-900">{act.title}</p>
-                          <p className="text-slate-600 text-xs mt-0.5">{act.description}</p>
-                          <span className="text-[10px] text-slate-400 block mt-1">
+                          <p className="font-semibold text-ink">{act.title}</p>
+                          <p className="text-mute text-xs mt-0.5">{act.description}</p>
+                          <span className="text-[10px] text-mute block mt-1">
                             {new Date(act.createdAt).toLocaleString()} by {act.createdBy?.name}
                           </span>
                         </div>
                       </div>
                     )) : (
-                      <p className="text-sm text-slate-500 text-center py-4">No activities logged yet.</p>
+                      <p className="text-sm text-mute text-center py-4">No activities logged yet.</p>
                     )}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </div>
           )}
 
           {activeTab === 'tasks' && (
             <div className="space-y-4">
-              <Card>
-                <CardContent className="p-4 space-y-4">
+              <div className="panel">
+                <div className="p-4 space-y-4">
                   <form onSubmit={handleCreateTask} className="flex gap-2">
                     <Input 
                       placeholder="New task..." 
@@ -218,31 +218,31 @@ export default function CompanyDetailPage() {
                   </form>
                   <div className="space-y-2">
                     {company.tasks?.length > 0 ? company.tasks.map((task: any) => (
-                      <div key={task.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-md border border-slate-100">
+                      <div key={task.id} className="flex items-center justify-between p-3 bg-surf2 rounded-md border border-line">
                         <div className="flex items-center gap-3">
-                          <CheckSquare className={`h-4 w-4 ${task.status === 'COMPLETED' ? 'text-emerald-500' : 'text-slate-400'}`} />
-                          <span className={`text-sm font-medium ${task.status === 'COMPLETED' ? 'line-through text-slate-400' : 'text-slate-900'}`}>
+                          <CheckSquare className={`h-4 w-4 ${task.status === 'COMPLETED' ? 'text-emerald-500' : 'text-mute'}`} />
+                          <span className={`text-sm font-medium ${task.status === 'COMPLETED' ? 'line-through text-mute' : 'text-ink'}`}>
                             {task.title}
                           </span>
                         </div>
                         <Badge variant="outline">{task.priority}</Badge>
                       </div>
                     )) : (
-                      <p className="text-sm text-slate-500 text-center py-4">No pending tasks.</p>
+                      <p className="text-sm text-mute text-center py-4">No pending tasks.</p>
                     )}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </div>
           )}
 
           {activeTab === 'communications' && (
-            <Card>
-              <CardContent className="p-8 text-center text-slate-500 text-sm">
+            <div className="panel">
+              <div className="p-8 text-center text-mute text-sm">
                 <MessageSquare className="h-8 w-8 text-slate-300 mx-auto mb-3" />
                 Communications history will appear here. Navigate to the inbox to send messages.
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           )}
         </div>
       </div>

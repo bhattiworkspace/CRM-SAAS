@@ -163,19 +163,19 @@ export default function WorkflowsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-line">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-            <Zap className="h-6 w-6 text-brand-600" /> Automations
+          <h1 className="text-2xl font-bold tracking-tight text-ink flex items-center gap-2">
+            <Zap className="h-6 w-6 text-acc" /> Automations
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-mute mt-1">
             Build and manage automated workflows to streamline your CRM processes.
           </p>
         </div>
         <Button onClick={() => {
           setFormData({ name: '', description: '', triggerType: 'LEAD_CREATED', status: 'DRAFT', conditions: [], actions: [] });
           setIsModalOpen(true);
-        }} className="gap-2 shadow-sm">
+        }} className="gap-2 shadow-none">
           <Plus className="h-4 w-4" /> Create Workflow
         </Button>
       </div>
@@ -194,59 +194,59 @@ export default function WorkflowsPage() {
       {/* Workflow List */}
       <div className="space-y-4">
         {loading ? (
-          <div className="bg-white border border-slate-200 rounded-lg p-12 text-center text-sm text-slate-500 flex flex-col items-center gap-2">
-            <RefreshCw className="h-5 w-5 animate-spin text-brand-600" />
+          <div className="bg-surf border border-line rounded-lg p-12 text-center text-sm text-mute flex flex-col items-center gap-2">
+            <RefreshCw className="h-5 w-5 animate-spin text-acc" />
             <span>Loading workflows...</span>
           </div>
         ) : filteredWorkflows.length === 0 ? (
-          <div className="bg-white border border-slate-200 rounded-lg p-12 text-center text-sm text-slate-500 space-y-3">
+          <div className="bg-surf border border-line rounded-lg p-12 text-center text-sm text-mute space-y-3">
             <Settings2 className="h-8 w-8 text-slate-300 mx-auto" />
-            <p className="font-semibold text-slate-700">No workflows found.</p>
+            <p className="font-semibold text-ink">No workflows found.</p>
             <p>Create your first automation to streamline your sales process.</p>
           </div>
         ) : (
           filteredWorkflows.map((workflow) => (
             <Card key={workflow.id} className="overflow-hidden hover:shadow-md transition-shadow duration-200">
-              <CardContent className="p-0">
+              <div className="p-0">
                 <div 
-                  className="p-5 flex items-center justify-between cursor-pointer bg-white"
+                  className="p-5 flex items-center justify-between cursor-pointer bg-surf"
                   onClick={() => setExpandedId(expandedId === workflow.id ? null : workflow.id)}
                 >
                   <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-lg bg-slate-100 flex items-center justify-center border border-slate-200">
-                      <Zap className="h-5 w-5 text-slate-600" />
+                    <div className="h-10 w-10 rounded-lg bg-surf2 flex items-center justify-center border border-line">
+                      <Zap className="h-5 w-5 text-mute" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-slate-900 text-base">{workflow.name}</h3>
-                      <p className="text-sm text-slate-500">{workflow.description}</p>
+                      <h3 className="font-bold text-ink text-base">{workflow.name}</h3>
+                      <p className="text-sm text-mute">{workflow.description}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-6">
-                    <div className="hidden md:flex gap-4 text-xs text-slate-500">
+                    <div className="hidden md:flex gap-4 text-xs text-mute">
                       <div className="flex flex-col items-center">
-                        <span className="font-bold text-slate-700">{workflow.conditions.length}</span>
+                        <span className="font-bold text-ink">{workflow.conditions.length}</span>
                         <span>Conditions</span>
                       </div>
                       <div className="flex flex-col items-center">
-                        <span className="font-bold text-slate-700">{workflow.actions.length}</span>
+                        <span className="font-bold text-ink">{workflow.actions.length}</span>
                         <span>Actions</span>
                       </div>
                     </div>
                     <div className="w-24 text-right">{getStatusBadge(workflow.status)}</div>
-                    {expandedId === workflow.id ? <ChevronUp className="h-5 w-5 text-slate-400" /> : <ChevronDown className="h-5 w-5 text-slate-400" />}
+                    {expandedId === workflow.id ? <ChevronUp className="h-5 w-5 text-mute" /> : <ChevronDown className="h-5 w-5 text-mute" />}
                   </div>
                 </div>
 
                 {expandedId === workflow.id && (
-                  <div className="px-5 pb-6 pt-2 bg-slate-50 border-t border-slate-200">
+                  <div className="px-5 pb-6 pt-2 bg-surf2 border-t border-line">
                     <div className="flex justify-between items-center mb-6">
-                      <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Workflow Flow</h4>
+                      <h4 className="text-xs font-semibold text-mute uppercase tracking-wider">Workflow Flow</h4>
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm" className="h-7 text-xs gap-1">
                           {workflow.status === 'ACTIVE' ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
                           {workflow.status === 'ACTIVE' ? 'Pause' : 'Activate'}
                         </Button>
-                        <Button variant="outline" size="sm" className="h-7 text-xs text-brand-600 border-brand-200 bg-brand-50 hover:bg-brand-100">
+                        <Button variant="outline" size="sm" className="h-7 text-xs text-acc border-brand-200 bg-acc/10 hover:bg-brand-100">
                           Edit
                         </Button>
                       </div>
@@ -256,9 +256,9 @@ export default function WorkflowsPage() {
                       {/* Trigger */}
                       <div className="relative mb-6">
                         <div className="absolute top-4 -left-4 w-8 h-0.5 bg-slate-200" />
-                        <div className="ml-8 bg-white border border-slate-200 border-l-4 border-l-blue-500 rounded-md p-4 shadow-sm">
+                        <div className="ml-8 bg-surf border border-line border-l-4 border-l-blue-500 rounded-md p-4 shadow-none">
                           <p className="text-xs font-semibold text-blue-600 mb-1 uppercase">Trigger</p>
-                          <p className="text-sm font-medium text-slate-900">{workflow.triggerType.replace('_', ' ')}</p>
+                          <p className="text-sm font-medium text-ink">{workflow.triggerType.replace('_', ' ')}</p>
                         </div>
                       </div>
 
@@ -266,14 +266,14 @@ export default function WorkflowsPage() {
                       {workflow.conditions.length > 0 && (
                         <div className="relative mb-6">
                           <div className="absolute top-4 -left-4 w-8 h-0.5 bg-slate-200" />
-                          <div className="ml-8 bg-white border border-slate-200 border-l-4 border-l-amber-500 rounded-md p-4 shadow-sm">
+                          <div className="ml-8 bg-surf border border-line border-l-4 border-l-amber-500 rounded-md p-4 shadow-none">
                             <p className="text-xs font-semibold text-amber-600 mb-2 uppercase">Conditions (AND)</p>
                             <div className="space-y-2">
                               {workflow.conditions.map((cond, i) => (
-                                <div key={i} className="flex gap-2 text-sm bg-slate-50 p-2 rounded border border-slate-100">
-                                  <span className="font-medium text-slate-700">{cond.field}</span>
-                                  <span className="text-slate-500 text-xs mt-0.5">{cond.operator}</span>
-                                  <span className="font-bold text-slate-900">{cond.value}</span>
+                                <div key={i} className="flex gap-2 text-sm bg-surf2 p-2 rounded border border-line">
+                                  <span className="font-medium text-ink">{cond.field}</span>
+                                  <span className="text-mute text-xs mt-0.5">{cond.operator}</span>
+                                  <span className="font-bold text-ink">{cond.value}</span>
                                 </div>
                               ))}
                             </div>
@@ -284,16 +284,16 @@ export default function WorkflowsPage() {
                       {/* Actions */}
                       <div className="relative">
                         <div className="absolute top-4 -left-4 w-8 h-0.5 bg-slate-200" />
-                        <div className="ml-8 bg-white border border-slate-200 border-l-4 border-l-emerald-500 rounded-md p-4 shadow-sm">
+                        <div className="ml-8 bg-surf border border-line border-l-4 border-l-emerald-500 rounded-md p-4 shadow-none">
                           <p className="text-xs font-semibold text-emerald-600 mb-2 uppercase">Actions</p>
                           <div className="space-y-3">
                             {workflow.actions.map((act, i) => (
-                              <div key={i} className="flex flex-col gap-1 text-sm bg-slate-50 p-3 rounded border border-slate-100">
-                                <div className="font-semibold text-slate-800 flex items-center justify-between">
+                              <div key={i} className="flex flex-col gap-1 text-sm bg-surf2 p-3 rounded border border-line">
+                                <div className="font-semibold text-ink flex items-center justify-between">
                                   <span>{i+1}. {act.type.replace('_', ' ')}</span>
-                                  {act.delay && <span className="text-xs font-normal text-slate-500 flex items-center"><Clock className="h-3 w-3 mr-1"/> Delay: {act.delay}m</span>}
+                                  {act.delay && <span className="text-xs font-normal text-mute flex items-center"><Clock className="h-3 w-3 mr-1"/> Delay: {act.delay}m</span>}
                                 </div>
-                                <span className="text-slate-600 text-xs">{act.config}</span>
+                                <span className="text-mute text-xs">{act.config}</span>
                               </div>
                             ))}
                           </div>
@@ -302,16 +302,16 @@ export default function WorkflowsPage() {
                     </div>
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ))
         )}
       </div>
 
       {/* Execution History */}
       <div className="pt-6">
-        <h2 className="text-lg font-bold text-slate-900 mb-4">Recent Executions</h2>
-        <Card>
+        <h2 className="text-lg font-bold text-ink mb-4">Recent Executions</h2>
+        <div className="panel">
           <Table>
             <TableHeader>
               <TableRow>
@@ -325,14 +325,14 @@ export default function WorkflowsPage() {
             <TableBody>
               {mockHistory.map((hist) => (
                 <TableRow key={hist.id}>
-                  <TableCell className="text-sm text-slate-600">{new Date(hist.date).toLocaleString()}</TableCell>
-                  <TableCell className="font-medium text-slate-900">{hist.triggerEntity}</TableCell>
+                  <TableCell className="text-sm text-mute">{new Date(hist.date).toLocaleString()}</TableCell>
+                  <TableCell className="font-medium text-ink">{hist.triggerEntity}</TableCell>
                   <TableCell>
                     <Badge variant={hist.status === 'SUCCESS' ? 'success' : hist.status === 'FAILED' ? 'danger' : 'info'}>
                       {hist.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-slate-500 text-sm">{hist.duration}</TableCell>
+                  <TableCell className="text-mute text-sm">{hist.duration}</TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="sm" className="text-xs">View Logs</Button>
                   </TableCell>
@@ -340,7 +340,7 @@ export default function WorkflowsPage() {
               ))}
             </TableBody>
           </Table>
-        </Card>
+        </div>
       </div>
 
       {/* Create/Edit Modal */}
@@ -401,7 +401,7 @@ export default function WorkflowsPage() {
                     }}><Trash2 className="h-4 w-4" /></Button>
                   </div>
                 ))}
-                {formData.conditions?.length === 0 && <p className="text-xs text-slate-500 italic">No conditions. Will run every time trigger fires.</p>}
+                {formData.conditions?.length === 0 && <p className="text-xs text-mute italic">No conditions. Will run every time trigger fires.</p>}
               </div>
             </div>
 
@@ -412,8 +412,8 @@ export default function WorkflowsPage() {
               </div>
               <div className="space-y-3">
                 {formData.actions?.map((act, i) => (
-                  <div key={i} className="flex gap-2 items-start bg-white p-3 rounded border border-emerald-100 shadow-sm">
-                    <div className="w-8 pt-2 font-bold text-slate-400">{i+1}.</div>
+                  <div key={i} className="flex gap-2 items-start bg-surf p-3 rounded border border-emerald-100 shadow-none">
+                    <div className="w-8 pt-2 font-bold text-mute">{i+1}.</div>
                     <div className="flex-1 space-y-3">
                       <div className="flex gap-2">
                         <div className="flex-1">
@@ -437,12 +437,12 @@ export default function WorkflowsPage() {
                     }}><Trash2 className="h-4 w-4" /></Button>
                   </div>
                 ))}
-                {formData.actions?.length === 0 && <p className="text-xs text-slate-500 italic">Add actions to execute when conditions are met.</p>}
+                {formData.actions?.length === 0 && <p className="text-xs text-mute italic">Add actions to execute when conditions are met.</p>}
               </div>
             </div>
             
-            <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
-              <label className="text-sm font-medium text-slate-700">Initial Status:</label>
+            <div className="flex items-center gap-2 pt-2 border-t border-line">
+              <label className="text-sm font-medium text-ink">Initial Status:</label>
               <Select 
                 value={formData.status} 
                 onChange={e => setFormData({...formData, status: e.target.value as any})}
@@ -454,7 +454,7 @@ export default function WorkflowsPage() {
               />
             </div>
           </div>
-          <div className="flex justify-end gap-2 border-t border-slate-200 pt-4 mt-2">
+          <div className="flex justify-end gap-2 border-t border-line pt-4 mt-2">
             <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
             <Button type="submit" isLoading={isSubmitting}>Save Workflow</Button>
           </div>

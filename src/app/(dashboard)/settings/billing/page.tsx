@@ -74,7 +74,7 @@ export default function BillingPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64 text-slate-500">
+      <div className="flex items-center justify-center h-64 text-mute">
         <RefreshCw className="h-6 w-6 animate-spin mr-2" /> Loading billing details...
       </div>
     );
@@ -85,82 +85,82 @@ export default function BillingPage() {
 
   return (
     <div className="space-y-6 max-w-5xl">
-      <div className="pb-2 border-b border-slate-200">
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-          <CreditCard className="h-6 w-6 text-brand-600" /> Billing & Subscription
+      <div className="pb-2 border-b border-line">
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink flex items-center gap-2">
+          <CreditCard className="h-6 w-6 text-acc" /> Billing & Subscription
         </h1>
-        <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+        <p className="text-xs sm:text-sm text-mute mt-0.5">
           Manage your plan, resource usage, and billing history
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="md:col-span-1 shadow-md border-brand-200 ring-1 ring-brand-100">
-          <CardHeader className="bg-brand-50/50 rounded-t-lg pb-4">
-            <CardTitle className="flex justify-between items-center">
+        <div className="panel md:col-span-1 shadow-none border-brand-200 ring-1 ring-brand-100">
+          <div className="mb-4" className="bg-brand-50/50 rounded-t-lg pb-4">
+            <h2 className="panel-title" className="flex justify-between items-center">
               Current Plan
               <Badge variant="success">{subscription?.status}</Badge>
-            </CardTitle>
-            <CardDescription>Your active subscription tier</CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6 space-y-4">
+            </h2>
+            <p className="text-mute text-sm mt-1">Your active subscription tier</p>
+          </div>
+          <div className="pt-6 space-y-4">
             <div className="flex items-end gap-2">
-              <Crown className="h-8 w-8 text-brand-600" />
-              <div className="text-3xl font-bold text-slate-900">{subscription?.planName}</div>
+              <Crown className="h-8 w-8 text-acc" />
+              <div className="text-3xl font-bold text-ink">{subscription?.planName}</div>
             </div>
-            <p className="text-xs text-slate-500">Current period ends: <span className="font-semibold text-slate-700">{new Date(subscription?.currentPeriodEnd).toLocaleDateString()}</span></p>
+            <p className="text-xs text-mute">Current period ends: <span className="font-semibold text-ink">{new Date(subscription?.currentPeriodEnd).toLocaleDateString()}</span></p>
             <Button className="w-full mt-4" onClick={() => setIsPlanModalOpen(true)}>Change Plan</Button>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><Activity className="h-4 w-4 text-indigo-500" /> Resource Usage</CardTitle>
-            <CardDescription>Usage for the current billing period</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-5">
+        <div className="panel md:col-span-2">
+          <div className="mb-4">
+            <h2 className="panel-title" className="flex items-center gap-2"><Activity className="h-4 w-4 text-indigo-500" /> Resource Usage</h2>
+            <p className="text-mute text-sm mt-1">Usage for the current billing period</p>
+          </div>
+          <div className="space-y-5">
             {Object.entries(usage || {}).map(([key, data]: [string, any]) => (
               <div key={key}>
                 <div className="flex justify-between text-sm font-semibold mb-1">
                   <span className="capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
-                  <span className="text-slate-600">
+                  <span className="text-mute">
                     {data.limit === -1 ? 'Unlimited' : `${data.used} / ${data.limit}`}
                   </span>
                 </div>
                 {data.limit !== -1 && (
-                  <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                  <div className="h-2 rounded-full bg-surf2 overflow-hidden">
                     <div 
-                      className={`h-full rounded-full ${key.includes('ai') ? 'bg-indigo-500' : 'bg-brand-500'}`} 
+                      className={`h-full rounded-full ${key.includes('ai') ? 'bg-indigo-500' : 'bg-acc'}`} 
                       style={{ width: `${Math.min(100, (data.used / data.limit) * 100)}%` }} 
                     />
                   </div>
                 )}
               </div>
             ))}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       <div>
-        <h3 className="text-sm font-bold text-slate-900 mb-3 uppercase tracking-wider">Enabled Modules</h3>
+        <h3 className="text-sm font-bold text-ink mb-3 uppercase tracking-wider">Enabled Modules</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {allModules.map(mod => {
             const isEnabled = enabledModules.includes(mod);
             return (
-              <div key={mod} className={`p-4 rounded-lg border ${isEnabled ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-200'} flex flex-col gap-2 items-center text-center`}>
-                {isEnabled ? <Check className="h-5 w-5 text-emerald-600" /> : <X className="h-5 w-5 text-slate-400" />}
-                <span className={`text-xs font-semibold ${isEnabled ? 'text-emerald-900' : 'text-slate-500'}`}>{mod}</span>
+              <div key={mod} className={`p-4 rounded-lg border ${isEnabled ? 'bg-emerald-50 border-emerald-200' : 'bg-surf2 border-line'} flex flex-col gap-2 items-center text-center`}>
+                {isEnabled ? <Check className="h-5 w-5 text-emerald-600" /> : <X className="h-5 w-5 text-mute" />}
+                <span className={`text-xs font-semibold ${isEnabled ? 'text-emerald-900' : 'text-mute'}`}>{mod}</span>
               </div>
             )
           })}
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Billing Events</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
+      <div className="panel">
+        <div className="mb-4">
+          <h2 className="panel-title">Recent Billing Events</h2>
+        </div>
+        <div className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
@@ -173,31 +173,31 @@ export default function BillingPage() {
               <TableRow>
                 <TableCell>2026-09-20</TableCell>
                 <TableCell><Badge variant="outline">INVOICE_PAID</Badge></TableCell>
-                <TableCell className="text-slate-600">$99.00 paid for Professional Plan</TableCell>
+                <TableCell className="text-mute">$99.00 paid for Professional Plan</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>2026-08-20</TableCell>
                 <TableCell><Badge variant="outline">INVOICE_PAID</Badge></TableCell>
-                <TableCell className="text-slate-600">$99.00 paid for Professional Plan</TableCell>
+                <TableCell className="text-mute">$99.00 paid for Professional Plan</TableCell>
               </TableRow>
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <Modal isOpen={isPlanModalOpen} onClose={() => setIsPlanModalOpen(false)} title="Select a Plan" maxWidth="2xl">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
           {plans.map(plan => (
-            <div key={plan.id} className={`p-4 rounded-xl border flex flex-col transition-all hover:shadow-md ${plan.tier === subscription?.tier ? 'ring-2 ring-brand-500 border-brand-200 bg-brand-50/30' : 'border-slate-200 bg-white'}`}>
+            <div key={plan.id} className={`p-4 rounded-xl border flex flex-col transition-all hover:shadow-md ${plan.tier === subscription?.tier ? 'ring-2 ring-brand-500 border-brand-200 bg-brand-50/30' : 'border-line bg-surf'}`}>
               <div className="mb-4">
                 <Badge variant={plan.tier === 'ENTERPRISE' ? 'purple' : 'outline'} className="mb-2">{plan.tier}</Badge>
-                <h4 className="text-lg font-bold text-slate-900">{plan.name}</h4>
-                <div className="text-2xl font-bold mt-2">{plan.price}<span className="text-xs font-normal text-slate-500">/mo</span></div>
+                <h4 className="text-lg font-bold text-ink">{plan.name}</h4>
+                <div className="text-2xl font-bold mt-2">{plan.price}<span className="text-xs font-normal text-mute">/mo</span></div>
               </div>
               <div className="flex-1 space-y-2 mb-6">
-                <p className="text-[10px] font-semibold text-slate-500 uppercase">Includes:</p>
+                <p className="text-[10px] font-semibold text-mute uppercase">Includes:</p>
                 {plan.modules.map((m: string) => (
-                  <div key={m} className="flex items-center gap-1.5 text-xs text-slate-700">
+                  <div key={m} className="flex items-center gap-1.5 text-xs text-ink">
                     <Check className="h-3 w-3 text-emerald-500" /> {m}
                   </div>
                 ))}

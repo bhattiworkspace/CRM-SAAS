@@ -134,13 +134,13 @@ export default function AIPage() {
     <div className="h-[calc(100vh-8rem)] flex flex-col space-y-4">
       <div className="flex items-center gap-2">
         <Sparkles className="h-6 w-6 text-indigo-600" />
-        <h1 className="text-xl font-bold tracking-tight text-slate-900">AI Assistant</h1>
+        <h1 className="text-xl font-bold tracking-tight text-ink">AI Assistant</h1>
       </div>
 
-      <div className="flex-1 flex overflow-hidden bg-white border border-slate-200 rounded-xl shadow-sm">
+      <div className="flex-1 flex overflow-hidden bg-surf border border-line rounded-xl shadow-none">
         {/* Sidebar */}
-        <div className="w-72 border-r border-slate-200 flex flex-col bg-slate-50/50">
-          <div className="p-4 border-b border-slate-200">
+        <div className="w-72 border-r border-line flex flex-col bg-slate-50/50">
+          <div className="p-4 border-b border-line">
             <Button className="w-full gap-2 bg-indigo-600 hover:bg-indigo-700" onClick={() => setIsModalOpen(true)}>
               <Plus className="h-4 w-4" /> New Conversation
             </Button>
@@ -154,10 +154,10 @@ export default function AIPage() {
                   activeConvId === conv.id ? 'bg-indigo-50 border border-indigo-100' : 'hover:bg-slate-100 border border-transparent'
                 }`}
               >
-                <div className="font-semibold text-sm text-slate-800 truncate">{conv.title || 'New Conversation'}</div>
+                <div className="font-semibold text-sm text-ink truncate">{conv.title || 'New Conversation'}</div>
                 <div className="flex items-center justify-between text-xs">
                   <Badge variant="outline" className="text-[10px] py-0">{conv.contextType}</Badge>
-                  <span className="text-slate-400"><Clock className="inline h-3 w-3 mr-0.5" />{new Date(conv.updatedAt).toLocaleDateString()}</span>
+                  <span className="text-mute"><Clock className="inline h-3 w-3 mr-0.5" />{new Date(conv.updatedAt).toLocaleDateString()}</span>
                 </div>
               </button>
             ))}
@@ -170,7 +170,7 @@ export default function AIPage() {
             <>
               {/* Context Header */}
               {activeConv.contextType !== 'GENERAL' && (
-                <div className="bg-slate-50 border-b border-slate-200 p-3 flex gap-2 overflow-x-auto">
+                <div className="bg-surf2 border-b border-line p-3 flex gap-2 overflow-x-auto">
                   <Button variant="outline" size="sm" onClick={() => triggerAction('Summarize this context')} className="text-xs h-7 gap-1.5"><FileText className="h-3 w-3" /> Summarize</Button>
                   <Button variant="outline" size="sm" onClick={() => triggerAction('Score this lead')} className="text-xs h-7 gap-1.5"><Activity className="h-3 w-3" /> Score Lead</Button>
                   <Button variant="outline" size="sm" onClick={() => triggerAction('Draft follow-up email')} className="text-xs h-7 gap-1.5"><MessageSquare className="h-3 w-3" /> Draft Email</Button>
@@ -181,27 +181,27 @@ export default function AIPage() {
               {/* Messages */}
               <div className="flex-1 overflow-y-auto p-6 space-y-6">
                 {messages.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-3">
+                  <div className="h-full flex flex-col items-center justify-center text-mute space-y-3">
                     <Sparkles className="h-10 w-10 text-indigo-200" />
                     <p>How can I help you today?</p>
                   </div>
                 ) : (
                   messages.map((msg, i) => (
                     <div key={msg.id || i} className={`flex ${msg.role === 'USER' ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-[80%] rounded-2xl p-4 shadow-sm ${
+                      <div className={`max-w-[80%] rounded-2xl p-4 shadow-none ${
                         msg.role === 'USER' 
-                          ? 'bg-slate-100 text-slate-900 rounded-br-sm' 
-                          : 'bg-indigo-50 border border-indigo-100 text-slate-900 rounded-bl-sm'
+                          ? 'bg-surf2 text-ink rounded-br-sm' 
+                          : 'bg-indigo-50 border border-indigo-100 text-ink rounded-bl-sm'
                       }`}>
                         {msg.role === 'AI' && (
                           <div className="flex items-center gap-1.5 mb-2 text-[10px] font-semibold text-indigo-600 uppercase tracking-wide">
                             <Sparkles className="h-3 w-3" /> AI Assistant
-                            <span className="text-slate-400 ml-2 normal-case font-normal">[MOCK — Development AI]</span>
+                            <span className="text-mute ml-2 normal-case font-normal">[MOCK — Development AI]</span>
                           </div>
                         )}
                         <div className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</div>
                         {msg.role === 'AI' && (
-                          <div className="mt-2 text-[10px] text-slate-400 flex items-center justify-between">
+                          <div className="mt-2 text-[10px] text-mute flex items-center justify-between">
                             <span>provider: mock, model: mock-v1</span>
                             <span>{new Date(msg.createdAt).toLocaleTimeString()}</span>
                           </div>
@@ -222,7 +222,7 @@ export default function AIPage() {
               </div>
 
               {/* Input Area */}
-              <div className="p-4 bg-white border-t border-slate-200">
+              <div className="p-4 bg-surf border-t border-line">
                 <form onSubmit={handleSend} className="relative flex items-center">
                   <input
                     type="text"
@@ -230,7 +230,7 @@ export default function AIPage() {
                     onChange={e => setInput(e.target.value)}
                     placeholder="Ask AI anything..."
                     disabled={sending}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-full pl-4 pr-12 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+                    className="w-full bg-surf2 border border-line rounded-full pl-4 pr-12 py-3 text-sm text-ink placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
                   />
                   <button
                     type="submit"
@@ -243,7 +243,7 @@ export default function AIPage() {
               </div>
             </>
           ) : (
-            <div className="h-full flex flex-col items-center justify-center text-slate-400">
+            <div className="h-full flex flex-col items-center justify-center text-mute">
               <LayoutDashboard className="h-12 w-12 text-slate-200 mb-4" />
               <p>Select or create a conversation to start</p>
             </div>
@@ -278,7 +278,7 @@ export default function AIPage() {
               onChange={e => setNewConvForm({...newConvForm, contextId: e.target.value})} 
             />
           )}
-          <div className="pt-4 flex justify-end gap-2 border-t border-slate-100">
+          <div className="pt-4 flex justify-end gap-2 border-t border-line">
             <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
             <Button type="submit" className="bg-indigo-600 hover:bg-indigo-700">Create</Button>
           </div>

@@ -38,24 +38,24 @@ export default function AuditLogsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-line">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-            <ShieldCheck className="h-6 w-6 text-brand-600" /> Audit Log Trail
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink flex items-center gap-2">
+            <ShieldCheck className="h-6 w-6 text-acc" /> Audit Log Trail
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+          <p className="text-xs sm:text-sm text-mute mt-0.5">
             Immutable security and data mutation logs scoped to your organization
           </p>
         </div>
       </div>
 
       {loading ? (
-        <div className="bg-white border border-slate-200 rounded-lg p-12 text-center text-xs text-slate-500 flex items-center justify-center gap-2">
-          <RefreshCw className="h-5 w-5 animate-spin text-brand-600" />
+        <div className="bg-surf border border-line rounded-lg p-12 text-center text-xs text-mute flex items-center justify-center gap-2">
+          <RefreshCw className="h-5 w-5 animate-spin text-acc" />
           <span>Loading audit log trail...</span>
         </div>
       ) : logs.length === 0 ? (
-        <div className="bg-white border border-slate-200 rounded-lg p-12 text-center text-xs text-slate-500">
+        <div className="bg-surf border border-line rounded-lg p-12 text-center text-xs text-mute">
           No audit logs recorded yet.
         </div>
       ) : (
@@ -72,12 +72,12 @@ export default function AuditLogsPage() {
           <TableBody>
             {logs.map((log) => (
               <TableRow key={log.id}>
-                <TableCell className="text-slate-500 text-[11px]">
+                <TableCell className="text-mute text-[11px]">
                   {new Date(log.timestamp).toLocaleString()}
                 </TableCell>
-                <TableCell className="font-semibold text-slate-900">
+                <TableCell className="font-semibold text-ink">
                   {log.user.name}
-                  <span className="block text-[10px] text-slate-400 font-normal">{log.user.email}</span>
+                  <span className="block text-[10px] text-mute font-normal">{log.user.email}</span>
                 </TableCell>
                 <TableCell>
                   <Badge
@@ -94,8 +94,8 @@ export default function AuditLogsPage() {
                     {log.action}
                   </Badge>
                 </TableCell>
-                <TableCell className="font-mono text-slate-700">{log.entity}</TableCell>
-                <TableCell className="text-slate-600 text-[11px] font-mono max-w-xs truncate">
+                <TableCell className="font-mono text-ink">{log.entity}</TableCell>
+                <TableCell className="text-mute text-[11px] font-mono max-w-xs truncate">
                   {log.metadata || '—'}
                 </TableCell>
               </TableRow>

@@ -53,48 +53,48 @@ export default function ReportsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Total Leads</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="panel">
+          <div className="mb-4" className="pb-2">
+            <h2 className="panel-title" className="text-sm text-muted-foreground">Total Leads</h2>
+          </div>
+          <div>
             <div className="text-3xl font-bold">{overview.totalLeads}</div>
             <div className="text-xs text-muted-foreground mt-1">{overview.newLeads} new in period</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Win Rate</CardTitle>
-          </CardHeader>
-          <CardContent>
+          </div>
+        </div>
+        <div className="panel">
+          <div className="mb-4" className="pb-2">
+            <h2 className="panel-title" className="text-sm text-muted-foreground">Win Rate</h2>
+          </div>
+          <div>
             <div className="text-3xl font-bold">{overview.winRate.toFixed(1)}%</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Pipeline Value</CardTitle>
-          </CardHeader>
-          <CardContent>
+          </div>
+        </div>
+        <div className="panel">
+          <div className="mb-4" className="pb-2">
+            <h2 className="panel-title" className="text-sm text-muted-foreground">Pipeline Value</h2>
+          </div>
+          <div>
             <div className="text-3xl font-bold">${overview.totalPipelineValue.toLocaleString()}</div>
             <div className="text-xs text-muted-foreground mt-1">Weighted: ${overview.weightedPipelineValue.toLocaleString()}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Won Revenue</CardTitle>
-          </CardHeader>
-          <CardContent>
+          </div>
+        </div>
+        <div className="panel">
+          <div className="mb-4" className="pb-2">
+            <h2 className="panel-title" className="text-sm text-muted-foreground">Won Revenue</h2>
+          </div>
+          <div>
             <div className="text-3xl font-bold">${overview.wonRevenue.toLocaleString()}</div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Leads by Source</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="panel">
+          <div className="mb-4">
+            <h2 className="panel-title">Leads by Source</h2>
+          </div>
+          <div>
             <div className="space-y-4">
               {leadsBySource.map((s: any) => (
                 <div key={s.source} className="flex justify-between items-center">
@@ -103,14 +103,14 @@ export default function ReportsPage() {
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Deals by Stage</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="panel">
+          <div className="mb-4">
+            <h2 className="panel-title">Deals by Stage</h2>
+          </div>
+          <div>
              <div className="space-y-4">
               {dealsByStage.map((s: any) => (
                 <div key={s.stage} className="flex justify-between items-center">
@@ -122,14 +122,14 @@ export default function ReportsPage() {
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Task Completion</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="panel">
+          <div className="mb-4">
+            <h2 className="panel-title">Task Completion</h2>
+          </div>
+          <div>
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
                 <div className="text-2xl font-bold">{taskCompletion.completed}</div>
@@ -144,14 +144,14 @@ export default function ReportsPage() {
                 <div className="text-xs text-red-500">Overdue</div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
         
-        <Card>
-          <CardHeader>
-            <CardTitle>Sales Forecast</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="panel">
+          <div className="mb-4">
+            <h2 className="panel-title">Sales Forecast</h2>
+          </div>
+          <div>
             <div className="space-y-4">
               <div className="flex justify-between border-b pb-2">
                 <span>Won Revenue</span>
@@ -166,15 +166,15 @@ export default function ReportsPage() {
                 <span className="font-bold text-green-600">${(forecast.wonRevenue + forecast.weightedPipeline).toLocaleString()}</span>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Rep Performance</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="panel">
+        <div className="mb-4">
+          <h2 className="panel-title">Rep Performance</h2>
+        </div>
+        <div>
           <Table>
             <TableHeader>
               <TableRow>
@@ -195,8 +195,8 @@ export default function ReportsPage() {
               ))}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
