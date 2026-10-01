@@ -43,8 +43,9 @@ export default async function DashboardPage() {
     prisma.lead.count({ where: { ...leadWhere, status: 'NEW' } }),
     prisma.lead.findMany({ where: leadWhere, select: { estimatedValue: true, status: true } }),
     prisma.task.findMany({
-      where: { ...taskWhere, dueDate: { gte: today, lt: tomorrow } },
+      where: { ...taskWhere, dueDate: { lt: tomorrow } },
       include: { lead: true, assignedTo: { select: { name: true } } },
+      orderBy: { dueDate: 'asc' },
       take: 10
     }),
     prisma.task.findMany({
@@ -123,12 +124,15 @@ export default async function DashboardPage() {
         <div className="panel md:col-span-2">
           <h2 className="panel-title">Today's follow-ups</h2>
           {todayTasks.length > 0 ? (
-            todayTasks.map((task) => (
-              <Link href={`/leads/${task.leadId}`} key={task.id} className="task-row group">
-                <span className="group-hover:text-acc transition-colors">{task.title} {task.lead?.title ? `— ${task.lead.title}` : ''}</span>
-                <span className="badge yellow">Today</span>
-              </Link>
-            ))
+            todayTasks.map((task) => {
+              const isOverdue = task.dueDate && new Date(task.dueDate) < today;
+              return (
+                <Link href={`/leads/${task.leadId}`} key={task.id} className="task-row group">
+                  <span className="group-hover:text-acc transition-colors">{task.title} {task.lead ? `— ${task.lead.firstName} ${task.lead.lastName}` : ''}</span>
+                  <span className={`badge ${isOverdue ? 'red' : 'yellow'}`}>{isOverdue ? 'Overdue' : 'Today'}</span>
+                </Link>
+              );
+            })
           ) : (
             <div className="empty-state py-6">
               <span className="text-mute text-sm">No follow-ups scheduled for today.</span>
@@ -139,7 +143,7 @@ export default async function DashboardPage() {
           {tomorrowTasks.length > 0 ? (
             tomorrowTasks.map((task) => (
               <Link href={`/leads/${task.leadId}`} key={task.id} className="task-row group">
-                <span className="group-hover:text-acc transition-colors">{task.title} {task.lead?.title ? `— ${task.lead.title}` : ''}</span>
+                <span className="group-hover:text-acc transition-colors">{task.title} {task.lead ? `— ${task.lead.firstName} ${task.lead.lastName}` : ''}</span>
                 <span className="badge blue">Tomorrow</span>
               </Link>
             ))
