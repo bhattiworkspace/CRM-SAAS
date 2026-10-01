@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-scheme="carbon">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ledger · CRM Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        bg:    'var(--bg)',    surf: 'var(--surf)',   surf2: 'var(--surf2)',
+        ink:   'var(--ink)',   mute: 'var(--mute)',   line: 'var(--line)',
+        acc:   'var(--acc)',   gold: 'var(--gold)',   up:   'var(--up)', down: 'var(--down)',
+        sbar:  'var(--sbar)',  sbarInk: 'var(--sbar-ink)', sbarMute: 'var(--sbar-mute)', sbarLine: 'var(--sbar-line)',
+        tbar:  'var(--tbar)',  tbarInk: 'var(--tbar-ink)', tbarLine: 'var(--tbar-line)',
+      },
+      fontFamily: { head: ['"Barlow Condensed"','sans-serif'], body: ['Manrope','sans-serif'], mono: ['"JetBrains Mono"','monospace'] },
+      borderRadius: { DEFAULT: '3px' },
+    }
+  }
+}
+</script>
+<style>
+/* ============ DESIGN TOKENS ============
+   Three swappable themes: light / dark / accent.
+   Sidebar and Topbar have their own tokens so they can be
+   recolored independently of the page canvas (a common CRM pattern:
+   dark chrome + light canvas, or fully themed). */
+:root[data-theme="dark"]{
+  --bg:#0D1015; --surf:#151A21; --surf2:#1B212A; --ink:#E7E9ED; --mute:#8590A0; --line:#252C36;
+  --acc:#4F86C6; --gold:#D08A45; --up:#4FB286; --down:#E0675A;
+  --sbar:#10141A; --sbar-ink:#E7E9ED; --sbar-mute:#7C8798; --sbar-line:#232A34;
+  --tbar:#151A21; --tbar-ink:#E7E9ED; --tbar-line:#252C36;
+}
+:root[data-theme="light"]{
+  --bg:#F2F3F5; --surf:#FFFFFF; --surf2:#F7F8FA; --ink:#141922; --mute:#5B6573; --line:#E1E4E9;
+  --acc:#1D3557; --gold:#B8642A; --up:#1E7A5A; --down:#B5483D;
+  --sbar:#FFFFFF; --sbar-ink:#141922; --sbar-mute:#5B6573; --sbar-line:#E7E9ED;
+  --tbar:#FFFFFF; --tbar-ink:#141922; --tbar-line:#E7E9ED;
+}
+:root[data-theme="accent"]{
+  --bg:#0E1A17; --surf:#132621; --surf2:#16302A; --ink:#E8EFEC; --mute:#82A399; --line:#1E3A33;
+  --acc:#3DDC97; --gold:#F2B84B; --up:#3DDC97; --down:#E0675A;
+  --sbar:#0B1613; --sbar-ink:#E8EFEC; --sbar-mute:#6F9389; --sbar-line:#18302A;
+  --tbar:#0B1613; --tbar-ink:#E8EFEC; --tbar-line:#18302A;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:var(--bg);color:var(--ink)}
+::selection{background:var(--acc);color:var(--bg)}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+@media(min-width:768px){
+  html.mini #sidebar{width:60px}
+  html.mini #sidebar .nav-link span:not(.pro-badge),html.mini #sidebar p,html.mini #sidebar .font-head{display:none}
+  html.mini #sidebar .nav-link{justify-content:center}
+  html.mini .md\:grid{grid-template-columns:60px 1fr}
+}
+body::before{content:"";position:fixed;inset:-25%;z-index:-1;pointer-events:none;
+  background:radial-gradient(40% 40% at 75% 15%,color-mix(in srgb,var(--acc) 17%,transparent),transparent 70%),
+             radial-gradient(38% 38% at 20% 85%,color-mix(in srgb,var(--gold) 13%,transparent),transparent 70%)}
+@media(prefers-reduced-motion:no-preference){
+  body::before{animation:dr 28s ease-in-out infinite alternate}
+  @keyframes dr{to{transform:translate(6%,4%) rotate(8deg) scale(1.08)}}
+  .kpis-glow::before{content:"";position:absolute;left:0;right:0;top:-3px;height:3px;
+    background:linear-gradient(90deg,transparent,var(--gold),transparent) no-repeat;background-size:30% 100%;
+    animation:sw 5s ease-in-out infinite}
+  @keyframes sw{from{background-position:-40% 0}to{background-position:140% 0}}
+  .track>span{position:relative;overflow:hidden}
+  .track>span::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);
+    transform:translateX(-100%);animation:sh 3.4s ease-in-out infinite}
+  .goal:nth-child(2) .track>span::after{animation-delay:.4s}
+  .goal:nth-child(3) .track>span::after{animation-delay:.8s}
+  #logo-dot{animation:lg 3s ease-in-out infinite}
+  @keyframes lg{50%{box-shadow:0 0 18px var(--gold)}}
+  .live-dot{animation:pl 2s ease-in-out infinite}
+  @keyframes pl{50%{opacity:.35}}
+}
+.panel,.kcol,.kpis-glow{position:relative;background:color-mix(in srgb,var(--surf) 86%,transparent);backdrop-filter:blur(10px)}
+.panel::after,.kcol::after{content:"";position:absolute;right:-1px;top:-1px;width:10px;height:10px;
+  border-top:2px solid var(--acc);border-right:2px solid var(--acc);pointer-events:none}
+
+.skel{background:linear-gradient(90deg,var(--line),color-mix(in srgb,var(--line) 40%,transparent),var(--line));background-size:200% 100%;animation:skm 1.3s linear infinite}
+@keyframes skm{to{background-position:-200% 0}}
+</style>
+</head>
+<body class="font-body text-[14px] leading-relaxed">
+
+<!-- ============================================================
+     1. GLOBAL LAYOUT SHELL — present on every logged-in screen
+     ============================================================ -->
+<div class="min-h-screen md:grid md:grid-cols-[220px_1fr] bg-bg">
+
+  <!-- ---- Sidebar (desktop, collapsible) / Drawer (mobile) ---- -->
+  <aside id="sidebar"
+    class="fixed md:static inset-y-0 left-0 z-40 w-[230px] -translate-x-full md:translate-x-0 transition-transform duration-200
+           bg-sbar text-sbarInk border-r border-sbarLine flex flex-col"
+    aria-label="Primary">
+    <div class="px-5 pt-6 pb-4 flex items-center gap-2">
+      <span id="logo-dot" class="w-2 h-2 bg-gold"></span>
+      <span class="font-head font-bold text-xl uppercase tracking-[.12em]">Ledger</span>
+    </div>
+
+    <nav class="flex-1 px-3 space-y-0.5 overflow-y-auto" aria-label="Main navigation">
+      <p class="px-3 pt-2 pb-1 text-[11px] font-mono uppercase tracking-wider text-sbarMute">Workspace</p>
+      <a href="#dashboard" data-nav class="nav-link" aria-current="page">
+        <svg class="ic" viewBox="0 0 24 24"><path d="M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z"/></svg>
+        <span>Dashboard</span>
+      </a>
+      <a href="#leads" data-nav class="nav-link">
+        <svg class="ic" viewBox="0 0 24 24"><path d="M3 4h18l-7 8v7l-4 2v-9z"/></svg>
+        <span>Leads</span>
+      </a>
+      <a href="#contacts" data-nav class="nav-link">
+        <svg class="ic" viewBox="0 0 24 24"><path d="M9 11a4 4 0 100-8 4 4 0 000 8zM2 21v-1a6 6 0 0112 0v1M17 4a4 4 0 010 7M22 21v-1a6 6 0 00-4-5.6"/></svg>
+        <span>Contacts</span>
+      </a>
+      <a href="#companies" data-nav class="nav-link">
+        <svg class="ic" viewBox="0 0 24 24"><path d="M4 21V4h10v17M14 9h6v12M8 8h2M8 12h2M8 16h2"/></svg>
+        <span>Companies</span>
+      </a>
+      <a href="#deals" data-nav class="nav-link">
+        <svg class="ic" viewBox="0 0 24 24"><path d="M3 7h18v13H3zM8 7V4h8v3M3 13h18"/></svg>
+        <span>Deals</span>
+      </a>
+      <a href="#tasks" data-nav class="nav-link">
+        <svg class="ic" viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></svg>
+        <span>Tasks</span>
+      </a>
+
+      <p class="px-3 pt-4 pb-1 text-[11px] font-mono uppercase tracking-wider text-sbarMute">Automation</p>
+      <a href="#sequences" data-nav class="nav-link">
+        <svg class="ic" viewBox="0 0 24 24"><path d="M5 4v6M5 14v6M12 4v16M19 4v10M19 18v2"/></svg>
+        <span>Sequences</span><span class="pro-badge">PRO</span>
+      </a>
+      <a href="#workflows" data-nav class="nav-link">
+        <svg class="ic" viewBox="0 0 24 24"><path d="M6 3a3 3 0 100 6 3 3 0 000-6zM18 15a3 3 0 100 6 3 3 0 000-6zM9 6h4a4 4 0 014 4v5"/></svg>
+        <span>Workflows</span><span class="pro-badge">PRO</span>
+      </a>
+      <a href="#ai" data-nav class="nav-link">
+        <svg class="ic" viewBox="0 0 24 24"><path d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg>
+        <span>AI Assistant</span><span class="pro-badge">PRO</span>
+      </a>
+
+      <p class="px-3 pt-4 pb-1 text-[11px] font-mono uppercase tracking-wider text-sbarMute">Insights</p>
+      <a href="#reports" data-nav class="nav-link">
+        <svg class="ic" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+        <span>Reports</span>
+      </a>
+      <a href="#audit" data-nav class="nav-link">
+        <svg class="ic" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6zM9 12l2 2 4-4"/></svg>
+        <span>Audit logs</span>
+      </a>
+      <a href="#settings" data-nav class="nav-link">
+        <svg class="ic" viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0M14 4v4M8 10v4M16 16v4"/></svg>
+        <span>Settings</span>
+      </a>
+    </nav>
+
+    <div class="px-3 py-3 border-t border-sbarLine">
+      <button id="collapseBtn" class="nav-link w-full text-sbarMute" aria-label="Collapse sidebar">
+        <svg class="ic" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>
+        <span>Collapse</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Mobile drawer overlay -->
+  <button id="overlay" class="fixed inset-0 bg-black/60 z-30 hidden md:hidden" aria-label="Close menu"></button>
+
+  <!-- ---- Main column: Topbar + content ---- -->
+  <div class="flex flex-col min-w-0">
+    <header class="sticky top-0 z-20 bg-tbar text-tbarInk border-b border-tbarLine"
+            style="padding-top:env(safe-area-inset-top,0px)">
+      <div class="h-14 px-4 flex items-center gap-3">
+        <button id="hamburger" class="md:hidden p-1.5 -ml-1.5" aria-label="Open menu">
+          <svg class="ic" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+
+        <!-- Organization switcher -->
+        <div class="relative">
+          <button class="chip" data-menu="orgMenu" aria-haspopup="true" aria-expanded="false">
+            <span class="w-4 h-4 bg-acc/20 border border-acc/40 inline-block"></span>
+            Fairmont &amp; Rowe
+            <svg class="ic w-3.5 h-3.5" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div id="orgMenu" class="menu hidden" role="menu">
+            <button class="menu-item" role="menuitem">Fairmont &amp; Rowe</button>
+            <button class="menu-item" role="menuitem">Northwind Labs</button>
+            <button class="menu-item" role="menuitem">Vale Holdings</button>
+            <hr class="border-line my-1">
+            <button class="menu-item" role="menuitem">Create workspace</button>
+          </div>
+        </div>
+
+        <!-- Global search -->
+        <label class="relative hidden sm:block flex-1 max-w-sm ml-1">
+          <span class="sr-only">Search leads, contacts, deals</span>
+          <svg class="ic absolute left-2.5 top-1/2 -translate-y-1/2 text-mute" viewBox="0 0 24 24"><path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-5-5"/></svg>
+          <input type="search" placeholder="Search leads, contacts, deals…" class="input pl-8 w-full">
+        </label>
+
+        <span class="flex-1 sm:hidden"></span>
+
+        <!-- Theme toggle: Light / Dark / Accent -->
+        <div class="hidden sm:flex items-center gap-1" role="group" aria-label="Color scheme">
+          <button data-scheme-btn="carbon" class="scheme-dot" aria-pressed="true" title="Carbon: steel and copper" style="background:linear-gradient(135deg,#4F86C6 50%,#D08A45 50%)"></button>
+          <button data-scheme-btn="cipher" class="scheme-dot" aria-pressed="false" title="Cipher: cyan and violet" style="background:linear-gradient(135deg,#2DD4E0 50%,#9B87F5 50%)"></button>
+          <button data-scheme-btn="ember" class="scheme-dot" aria-pressed="false" title="Ember: green and amber" style="background:linear-gradient(135deg,#3DDC97 50%,#F2B84B 50%)"></button>
+        </div>
+        <span class="hidden sm:flex items-center gap-1.5 text-[10.5px] font-mono uppercase tracking-wider text-mute">
+          <span class="live-dot w-1.5 h-1.5 rounded-full bg-up"></span>Synced
+        </span>
+        <div class="hidden sm:flex items-center gap-1 bg-surf2 border border-line rounded p-0.5" role="group" aria-label="Theme">
+          <button data-theme-btn="light" class="theme-btn" aria-pressed="false" title="Light">
+            <svg class="ic" viewBox="0 0 24 24"><path d="M12 16a4 4 0 100-8 4 4 0 000 8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+          </button>
+          <button data-theme-btn="dark" class="theme-btn" aria-pressed="true" title="Dark">
+            <svg class="ic" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
+          </button>
+        </div>
+
+        <!-- Notifications -->
+        <div class="relative">
+          <button class="relative p-1.5" data-menu="notifMenu" aria-label="Notifications">
+            <svg class="ic" viewBox="0 0 24 24"><path d="M6 9a6 6 0 0112 0c0 6 2 7 2 7H4s2-1 2-7M10 20a2 2 0 004 0"/></svg>
+            <span class="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-down text-white text-[10px] grid place-items-center">3</span>
+          </button>
+          <div id="notifMenu" class="menu hidden w-72" role="menu">
+            <p class="px-2 py-1 text-mute text-xs">Notifications</p>
+            <a href="#leads" class="menu-item"><span class="w-1.5 h-1.5 bg-gold rounded-full"></span>New lead assigned: Priya Nair</a>
+            <a href="#deals" class="menu-item"><span class="w-1.5 h-1.5 bg-gold rounded-full"></span>Deal moved to Negotiation</a>
+            <a href="#tasks" class="menu-item"><span class="w-1.5 h-1.5 bg-gold rounded-full"></span>Follow-up due today</a>
+            <hr class="border-line my-1">
+            <button class="menu-item">Mark all read</button>
+          </div>
+        </div>
+
+        <button class="btn-primary hidden sm:inline-flex" data-modal="newLeadModal">
+          <svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+          New lead
+        </button>
+
+        <!-- Profile -->
+        <div class="relative">
+          <button class="p-0.5" data-menu="profMenu" aria-label="Profile menu">
+            <span class="w-8 h-8 rounded bg-surf2 border border-gold grid place-items-center font-semibold text-xs">SK</span>
+          </button>
+          <div id="profMenu" class="menu hidden" role="menu">
+            <div class="px-2 py-1.5"><b class="block">Sara Khan</b><span class="text-mute text-xs">Owner · sara@fairmontrowe.com</span></div>
+            <hr class="border-line my-1">
+            <a href="#settings" class="menu-item">My profile</a>
+            <a href="#settings" class="menu-item">Workspace settings</a>
+            <hr class="border-line my-1">
+            <button class="menu-item text-down">Log out</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ============================================================
+         2. PAGE CANVAS — swapped by the simple hash router below
+         ============================================================ -->
+    <main id="canvas" class="flex-1 p-4 md:p-6 max-w-[1280px] w-full mx-auto"></main>
+  </div>
+</div>
+
+<!-- ============================================================
+     3. MODALS, TOASTS — shared overlay components
+     ============================================================ -->
+<div id="newLeadModal" class="modal-ov hidden" data-modal-root>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="nlTitle">
+    <h2 id="nlTitle" class="font-head font-semibold text-xl mb-1">New lead</h2>
+    <p class="text-mute text-sm mb-4">Add someone to your pipeline.</p>
+    <div class="space-y-3">
+      <label class="field"><span>Full name</span><input class="input" placeholder="Jordan Blake"></label>
+      <label class="field"><span>Company</span><input class="input" placeholder="Northwind Labs"></label>
+      <div class="grid grid-cols-2 gap-3">
+        <label class="field"><span>Priority</span>
+          <select class="input"><option>High</option><option selected>Medium</option><option>Low</option></select>
+        </label>
+        <label class="field"><span>Estimated value</span><input class="input" placeholder="$0"></label>
+      </div>
+    </div>
+    <div class="flex justify-end gap-2 mt-5">
+      <button class="btn" data-modal-close>Cancel</button>
+      <button class="btn-primary" data-modal-close data-toast="Lead saved successfully">Save lead</button>
+    </div>
+  </div>
+</div>
+
+<div id="deleteModal" class="modal-ov hidden" data-modal-root>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="delTitle">
+    <h2 id="delTitle" class="font-head font-semibold text-xl mb-1">Delete lead</h2>
+    <p class="text-mute text-sm mb-4">Are you sure you want to delete <b class="text-ink">Priya Nair</b>? This cannot be undone.</p>
+    <div class="flex justify-end gap-2">
+      <button class="btn" data-modal-close>Cancel</button>
+      <button class="btn-danger" data-modal-close data-toast="Lead deleted" data-toast-kind="err">Delete lead</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastHost" class="fixed bottom-4 right-4 z-[90] space-y-2" aria-live="polite"></div>
+
+<!-- ============================================================
+     4. PAGE TEMPLATES (hidden, cloned into #canvas by the router)
+     Each <template> is one route — semantic, self-contained,
+     and ready to become a single React page component.
+     ============================================================ -->
+
+<template id="page-dashboard">
+<section aria-labelledby="pt">
+  <div class="flex items-end justify-between flex-wrap gap-3 mb-5">
+    <div>
+      <h1 id="pt" class="font-head font-semibold text-3xl md:text-[34px]">Good morning, Sara</h1>
+      <p class="text-mute">Here's how Fairmont &amp; Rowe is tracking this quarter.</p>
+    </div>
+  </div>
+
+  <!-- KPI row -->
+  <div class="kpis-glow grid grid-cols-2 md:grid-cols-4 bg-surf border border-line rounded border-t-2 border-t-gold mb-4">
+    <div class="kpi"><span class="kpi-label">Revenue</span><b class="kpi-num">$482,900</b><span class="delta up">+12.4%</span></div>
+    <div class="kpi"><span class="kpi-label">Active leads</span><b class="kpi-num">1,284</b><span class="delta up">+38</span></div>
+    <div class="kpi"><span class="kpi-label">Win rate</span><b class="kpi-num">34%</b><span class="delta down">−2.1 pts</span></div>
+    <div class="kpi"><span class="kpi-label">Avg. deal size</span><b class="kpi-num">$18,400</b><span class="delta up">+6.8%</span></div>
+  </div>
+
+  <div class="grid md:grid-cols-3 gap-4">
+    <div class="panel md:col-span-2">
+      <h2 class="panel-title">Today's follow-ups</h2>
+      <a href="#leads" class="task-row"><span>Send revised proposal — Priya Nair</span><span class="badge yellow">Today</span></a>
+      <a href="#leads" class="task-row"><span>Prepare QBR deck — Fairmont internal</span><span class="badge yellow">Today</span></a>
+      <h2 class="panel-title mt-5">Tomorrow</h2>
+      <a href="#leads" class="task-row"><span>Call Marcus Webb</span><span class="badge blue">Tomorrow</span></a>
+    </div>
+    <div class="panel">
+      <h2 class="panel-title">Goals this month</h2>
+      <div class="goal"><div class="flex justify-between text-sm mb-1"><span>Revenue</span><span>$482k / $620k</span></div><div class="track"><span style="width:78%"></span></div></div>
+      <div class="goal"><div class="flex justify-between text-sm mb-1"><span>New leads</span><span>32 / 50</span></div><div class="track"><span style="width:64%"></span></div></div>
+      <div class="goal"><div class="flex justify-between text-sm mb-1"><span>Meetings booked</span><span>27 / 30</span></div><div class="track"><span style="width:91%;background:var(--gold)"></span></div></div>
+    </div>
+  </div>
+</section>
+</template>
+
+<template id="page-leads">
+<section aria-labelledby="pt">
+  <div class="flex items-center justify-between flex-wrap gap-2 mb-1">
+    <div><h1 id="pt" class="font-head font-semibold text-3xl">Leads</h1><p class="text-mute">Track every lead from first touch to close.</p></div>
+    <button class="btn-primary" data-modal="newLeadModal">
+      <svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> New lead
+    </button>
+  </div>
+
+  <div class="flex items-center gap-2 flex-wrap my-4">
+    <div class="seg" role="group" aria-label="View">
+      <button class="seg-btn" aria-pressed="true">Table</button>
+      <button class="seg-btn" aria-pressed="false">Board</button>
+    </div>
+    <select class="input w-auto"><option>All statuses</option><option>New</option><option>Contacted</option><option>Qualified</option></select>
+    <select class="input w-auto"><option>All priorities</option><option>High</option><option>Medium</option><option>Low</option></select>
+  </div>
+
+  <div class="panel p-0 overflow-x-auto">
+    <table class="w-full min-w-[720px] text-left">
+      <caption class="sr-only">Lead list</caption>
+      <thead><tr class="text-mute text-xs font-mono uppercase tracking-wide">
+        <th class="th">Lead</th><th class="th">Company</th><th class="th">Status</th><th class="th">Priority</th><th class="th">Value</th><th class="th">Owner</th>
+      </tr></thead>
+      <tbody>
+        <tr class="row-lk"><td class="td font-medium">Priya Nair</td><td class="td">Northwind Labs</td><td class="td"><span class="badge blue">Qualified</span></td><td class="td"><span class="badge red">High</span></td><td class="td">$48,000</td><td class="td">Sara K.</td></tr>
+        <tr class="row-lk"><td class="td font-medium">Marcus Webb</td><td class="td">Hale &amp; Lund</td><td class="td"><span class="badge yellow">Contacted</span></td><td class="td"><span class="badge red">High</span></td><td class="td">$29,000</td><td class="td">Omar T.</td></tr>
+        <tr class="row-lk"><td class="td font-medium">Julian Brandt</td><td class="td">Kestrel Group</td><td class="td"><span class="badge indigo">New</span></td><td class="td"><span class="badge yellow">Medium</span></td><td class="td">$22,800</td><td class="td">Sara K.</td></tr>
+        <tr class="row-lk"><td class="td font-medium">Ines Duarte</td><td class="td">Vale Holdings</td><td class="td"><span class="badge indigo">New</span></td><td class="td"><span class="badge green">Low</span></td><td class="td">$12,400</td><td class="td">Lina M.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+</template>
+
+<template id="page-lead-detail">
+<section aria-labelledby="pt">
+  <div class="grid md:grid-cols-[320px_1fr] gap-4 items-start">
+    <div class="space-y-4">
+      <div class="panel">
+        <div class="flex justify-between items-start">
+          <h1 id="pt" class="font-head font-semibold text-2xl">Priya Nair</h1>
+          <span class="badge blue">Qualified</span>
+        </div>
+        <dl class="kv">
+          <dt>Email</dt><dd>priya@northwindlabs.com</dd>
+          <dt>Phone</dt><dd>+1 415 555 0148</dd>
+          <dt>Company</dt><dd><a class="link" href="#companies">Northwind Labs</a></dd>
+          <dt>Priority</dt><dd><span class="badge red">High</span></dd>
+          <dt>Value</dt><dd>$48,000</dd>
+          <dt>Owner</dt><dd>Sara K.</dd>
+        </dl>
+        <button class="dgr-link" data-modal="deleteModal">
+          <svg class="ic" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg> Delete lead
+        </button>
+      </div>
+      <div class="panel border-l-2 border-l-gold">
+        <h2 class="panel-title flex items-center gap-1.5">
+          <svg class="ic text-gold" viewBox="0 0 24 24"><path d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg> AI summary
+        </h2>
+        <p class="text-mute">Priya is a high-priority lead from Northwind Labs worth $48,000, currently qualified. Suggested next step: send a tailored proposal and book a call this week.</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="tabs" role="tablist">
+        <button class="tab-btn active" role="tab" aria-selected="true">Follow-ups</button>
+        <button class="tab-btn" role="tab" aria-selected="false">Activity log</button>
+        <button class="tab-btn" role="tab" aria-selected="false">Communications</button>
+      </div>
+      <div class="task-row"><label class="flex items-center gap-2 flex-1"><input type="checkbox" class="chk"> Send revised proposal</label><span class="badge yellow">Today</span></div>
+      <div class="task-row"><label class="flex items-center gap-2 flex-1"><input type="checkbox" class="chk" checked> <span class="line-through text-mute">Book intro call</span></label><span class="badge blue">Tomorrow</span></div>
+      <div class="flex gap-2 mt-4">
+        <input class="input flex-1" placeholder="New follow-up">
+        <input class="input w-36" type="date">
+        <button class="btn-primary">Add</button>
+      </div>
+    </div>
+  </div>
+</section>
+</template>
+
+<template id="page-deals">
+<section aria-labelledby="pt">
+  <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+    <div><h1 id="pt" class="font-head font-semibold text-3xl">Deals</h1><p class="text-mute">Drag a card to move it between stages.</p></div>
+    <button class="btn-primary"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> New deal</button>
+  </div>
+  <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+    <div class="kcol"><h2 class="kcol-title">Prospect<span>1</span></h2>
+      <div class="kcard" draggable="true"><b>Starter plan</b><span class="text-mute text-xs">Theo Marsh</span><span class="kcard-val">$6,500</span></div>
+    </div>
+    <div class="kcol"><h2 class="kcol-title">Meeting<span>1</span></h2>
+      <div class="kcard" draggable="true"><b>Private advisory</b><span class="text-mute text-xs">Hale &amp; Lund</span><span class="kcard-val">$29,000</span></div>
+    </div>
+    <div class="kcol"><h2 class="kcol-title">Proposal<span>2</span></h2>
+      <div class="kcard" draggable="true"><b>Brand launch</b><span class="text-mute text-xs">Hale &amp; Lund</span><span class="kcard-val">$36,500</span></div>
+      <div class="kcard" draggable="true"><b>Events package</b><span class="text-mute text-xs">Kestrel Group</span><span class="kcard-val">$22,800</span></div>
+    </div>
+    <div class="kcol"><h2 class="kcol-title">Negotiation<span>1</span></h2>
+      <div class="kcard" draggable="true"><b>Annual retainer</b><span class="text-mute text-xs">Vale Holdings</span><span class="kcard-val">$48,000</span></div>
+    </div>
+    <div class="kcol"><h2 class="kcol-title">Closed won<span>1</span></h2>
+      <div class="kcard" draggable="true"><b>Onboarding pack</b><span class="text-mute text-xs">Northwind Labs</span><span class="kcard-val">$6,500</span></div>
+    </div>
+  </div>
+</section>
+</template>
+
+<template id="page-tasks">
+<section aria-labelledby="pt">
+  <h1 id="pt" class="font-head font-semibold text-3xl mb-1">Tasks</h1>
+  <p class="text-mute mb-4">Everything you need to do.</p>
+  <div class="panel">
+    <div class="task-row"><label class="flex items-center gap-2 flex-1"><input type="checkbox" class="chk"> Send revised proposal to Priya</label><span class="badge yellow">Today</span></div>
+    <div class="task-row"><label class="flex items-center gap-2 flex-1"><input type="checkbox" class="chk"> Prepare QBR deck</label><span class="badge yellow">Today</span></div>
+    <div class="task-row"><label class="flex items-center gap-2 flex-1"><input type="checkbox" class="chk" checked><span class="line-through text-mute">Update CRM notes</span></label><span class="badge green">Done</span></div>
+  </div>
+</section>
+</template>
+
+<template id="page-empty-example">
+<section aria-labelledby="pt">
+  <h1 id="pt" class="font-head font-semibold text-3xl mb-4">Activities</h1>
+  <div class="panel">
+    <div class="empty-state">
+      <div class="empty-illo"><svg class="ic w-6 h-6" viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></svg></div>
+      <b>No tasks for today. Enjoy your day!</b>
+      <span class="text-mute text-sm">New activity will show up here as soon as it happens.</span>
+    </div>
+  </div>
+</section>
+</template>
+
+<template id="page-settings">
+<section aria-labelledby="pt">
+  <h1 id="pt" class="font-head font-semibold text-3xl mb-4">Settings</h1>
+  <div class="grid md:grid-cols-[200px_1fr] gap-4 items-start">
+    <nav class="panel p-2" aria-label="Settings">
+      <button class="settings-link active">My profile</button>
+      <button class="settings-link">Team members</button>
+      <button class="settings-link">Billing</button>
+      <button class="settings-link">Module controls</button>
+    </nav>
+    <div class="space-y-4">
+      <div class="panel">
+        <h2 class="panel-title">My profile</h2>
+        <div class="flex items-center gap-3 my-3">
+          <span class="w-14 h-14 rounded bg-surf2 border border-gold grid place-items-center font-head font-semibold text-xl">SK</span>
+          <label class="btn cursor-pointer">Upload avatar<input type="file" class="sr-only"></label>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-3">
+          <label class="field"><span>Full name</span><input class="input" value="Sara Khan"></label>
+          <label class="field"><span>Email</span><input class="input" value="sara@fairmontrowe.com"></label>
+        </div>
+        <button class="btn-primary mt-3">Save changes</button>
+      </div>
+      <div class="panel">
+        <h2 class="panel-title">Module controls</h2>
+        <p class="text-mute text-sm mb-2">Owner only. Turn features on or off for the whole team.</p>
+        <label class="toggle-row"><span>Sequences</span><input type="checkbox" class="switch" checked></label>
+        <label class="toggle-row"><span>Workflows</span><input type="checkbox" class="switch" checked></label>
+        <label class="toggle-row"><span>AI Assistant</span><input type="checkbox" class="switch"></label>
+      </div>
+    </div>
+  </div>
+</section>
+</template>
+
+<!-- ============================================================
+     5. COMPONENT TOKENS — utility classes composed from Tailwind
+     (This @layer block is the "slice me into React" surface:
+      each class below maps cleanly to one component.)
+     ============================================================ -->
+<style type="text/tailwindcss">
+@layer components {
+  .nav-link { @apply flex items-center gap-2.5 px-3 py-2 rounded text-sbarMute hover:text-sbarInk text-[13.5px]; }
+  .nav-link[aria-current="page"] { @apply bg-white/[.04] text-sbarInk font-medium shadow-[inset_3px_0_0_var(--gold)]; }
+  .ic { @apply w-4 h-4 flex-none fill-none stroke-current stroke-[1.8]; stroke-linecap: square; stroke-linejoin: miter; }
+  .pro-badge { @apply ml-auto text-[9px] font-mono border border-gold text-gold px-1 rounded-[2px]; }
+
+  .chip { @apply flex items-center gap-1.5 text-sm px-2.5 py-1.5 rounded border border-line hover:bg-surf2; }
+  .menu { @apply absolute right-0 top-[calc(100%+6px)] min-w-[200px] bg-surf border border-line border-t-2 border-t-acc rounded p-1.5 shadow-xl z-50; }
+  .menu-item { @apply flex items-center gap-2 w-full text-left px-2 py-1.5 rounded text-sm text-ink hover:bg-surf2; }
+
+  .theme-btn { @apply p-1.5 rounded text-mute; }
+  .theme-btn[aria-pressed="true"] { @apply bg-surf text-ink shadow-[0_0_0_1px_var(--gold)]; }
+  .scheme-dot { @apply w-5 h-5 rounded p-0; }
+  .scheme-dot[aria-pressed="true"] { @apply shadow-[0_0_0_2px_var(--bg),0_0_0_3px_var(--ink)]; }
+
+  .input { @apply bg-surf2 border border-line rounded px-3 py-2 text-sm text-ink placeholder:text-mute; }
+  .field { @apply block text-xs text-mute; }
+  .field > .input, .field > select { @apply mt-1 text-sm text-ink w-full; }
+
+  .btn { @apply px-3.5 py-2 rounded border border-line text-sm hover:bg-surf2; }
+  .btn-primary { @apply inline-flex items-center gap-1.5 px-3.5 py-2 rounded bg-acc text-bg text-sm font-medium hover:opacity-90; }
+  .btn-danger { @apply px-3.5 py-2 rounded bg-down text-white text-sm font-medium hover:opacity-90; }
+  .dgr-link { @apply mt-3 flex items-center gap-1.5 text-mute hover:text-down text-sm; }
+
+  .panel { @apply bg-surf border border-line rounded p-4; }
+  .panel-title { @apply font-head font-semibold text-[15px] mb-2; }
+
+  .kpi { @apply p-4 border-r border-b md:border-b-0 border-line last:border-r-0 flex flex-col gap-0.5; }
+  .kpi-label { @apply text-mute text-xs font-mono uppercase tracking-wide; }
+  .kpi-num { @apply font-head font-semibold text-[30px] leading-tight; }
+  .delta { @apply text-xs font-semibold; }
+  .delta.up { @apply text-up; } .delta.down { @apply text-down; }
+
+  .task-row { @apply flex items-center justify-between gap-3 py-2 border-b border-line last:border-0; }
+  .goal { @apply mb-3 last:mb-0; }
+  .track { @apply h-1.5 bg-line rounded overflow-hidden; }
+  .track > span { @apply block h-full bg-acc rounded; }
+
+  .th { @apply px-3 py-2.5 border-b border-line; }
+  .td { @apply px-3 py-2.5 border-b border-line; }
+  .row-lk { @apply cursor-pointer hover:bg-surf2; }
+
+  .badge { @apply inline-block text-[11px] px-2 py-0.5 rounded border; }
+  .badge.blue   { @apply text-acc border-acc/40; }
+  .badge.yellow { @apply text-gold border-gold/40; }
+  .badge.green  { @apply text-up border-up/40; }
+  .badge.red    { @apply text-down border-down/40; }
+  .badge.indigo { @apply text-mute border-line; }
+
+  .seg { @apply inline-flex p-0.5 bg-surf2 border border-line rounded; }
+  .seg-btn { @apply px-3 py-1.5 text-sm rounded text-mute; }
+  .seg-btn[aria-pressed="true"] { @apply bg-surf text-ink font-medium shadow-[0_0_0_1px_var(--gold)]; }
+
+  .kv { @apply grid grid-cols-[88px_1fr] gap-y-2 text-sm mt-3; }
+  .kv dt { @apply text-mute; } .kv dd { @apply m-0; }
+
+  .tabs { @apply flex gap-1 border-b border-line mb-3; }
+  .tab-btn { @apply px-3 py-2 text-sm text-mute border-b-2 border-transparent -mb-px; }
+  .tab-btn.active, .tab-btn[aria-selected="true"] { @apply text-ink border-acc; }
+
+  .kcol { @apply bg-surf border border-line rounded p-2.5; }
+  .kcol-title { @apply flex justify-between font-head font-semibold text-sm mb-2 px-0.5; }
+  .kcol-title span { @apply text-mute font-mono font-normal; }
+  .kcard { @apply bg-surf2 border border-line rounded p-2.5 mb-2 last:mb-0 cursor-grab flex flex-col gap-1; }
+  .kcard-val { @apply font-head text-lg; }
+
+  .chk { @apply w-4 h-4 accent-acc; }
+
+  .empty-state { @apply flex flex-col items-center text-center gap-1.5 py-10 px-4; }
+  .empty-illo { @apply w-12 h-12 border border-dashed border-gold rounded grid place-items-center text-gold mb-1; }
+
+  .settings-link { @apply block w-full text-left px-3 py-2 rounded text-sm text-mute hover:text-ink; }
+  .settings-link.active { @apply bg-surf2 text-ink font-medium shadow-[inset_3px_0_0_var(--acc)]; }
+  .toggle-row { @apply flex items-center justify-between py-2.5 border-b border-line last:border-0 text-sm; }
+  .switch { @apply w-9 h-5 rounded-full appearance-none bg-line relative cursor-pointer transition-colors; }
+  .switch:checked { @apply bg-acc; }
+  .switch::after { content:""; @apply absolute top-0.5 left-0.5 w-4 h-4 bg-ink rounded-full transition-transform; }
+  .switch:checked::after { transform: translateX(16px); }
+
+  .link { @apply text-acc hover:underline; }
+
+  .modal-ov { @apply fixed inset-0 bg-black/60 z-[80] grid place-items-center p-4; }
+  .modal-card { @apply bg-surf border border-line border-t-2 border-t-acc rounded p-5 w-full max-w-md; }
+
+  .toast { @apply bg-surf border border-line border-l-[3px] border-l-acc rounded px-3.5 py-2.5 text-sm shadow-xl; }
+  .toast.err { @apply border-l-down; }
+}
+</style>
+
+<!-- ============================================================
+     6. ROUTER + INTERACTION LOGIC (vanilla JS, framework-agnostic)
+     ============================================================ -->
+<script>
+(function(){
+  var routes = { dashboard:'page-dashboard', leads:'page-leads', lead:'page-lead-detail', contacts:'page-leads',
+    companies:'page-leads', deals:'page-deals', tasks:'page-tasks', sequences:'page-empty-example',
+    workflows:'page-empty-example', ai:'page-empty-example', reports:'page-dashboard', audit:'page-empty-example', settings:'page-settings' };
+
+  function render(){
+    var key = (location.hash || '#dashboard').slice(1);
+    var tplId = routes[key] || 'page-dashboard';
+    var tpl = document.getElementById(tplId);
+    var canvas = document.getElementById('canvas');
+    canvas.innerHTML = '';
+    canvas.appendChild(tpl.content.cloneNode(true));
+    document.querySelectorAll('[data-nav]').forEach(function(a){
+      var on = a.getAttribute('href') === '#' + key;
+      a.toggleAttribute('aria-current', on);
+      if(on) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current');
+    });
+    document.getElementById('sidebar').classList.add('-translate-x-full');
+    document.getElementById('overlay').classList.add('hidden');
+  }
+  window.addEventListener('hashchange', render);
+
+  // Mobile drawer
+  var sb = document.getElementById('sidebar'), ov = document.getElementById('overlay');
+  document.getElementById('hamburger').onclick = function(){ sb.classList.remove('-translate-x-full'); ov.classList.remove('hidden'); };
+  ov.onclick = function(){ sb.classList.add('-translate-x-full'); ov.classList.add('hidden'); };
+
+  // Sidebar collapse (desktop): icon-only rail
+  document.getElementById('collapseBtn').onclick = function(){
+    document.documentElement.classList.toggle('mini');
+  };
+
+  // Dropdown menus (org switcher, notifications, profile)
+  document.addEventListener('click', function(e){
+    var opener = e.target.closest('[data-menu]');
+    document.querySelectorAll('.menu').forEach(function(m){
+      if(!opener || m.id !== opener.dataset.menu) m.classList.add('hidden');
+    });
+    if(opener){
+      var m = document.getElementById(opener.dataset.menu);
+      m.classList.toggle('hidden');
+      opener.setAttribute('aria-expanded', !m.classList.contains('hidden'));
+    } else if(!e.target.closest('.menu')){
+      document.querySelectorAll('.menu').forEach(function(m){ m.classList.add('hidden'); });
+    }
+
+    // Modals
+    var mo = e.target.closest('[data-modal]');
+    if(mo){ document.getElementById(mo.dataset.modal).classList.remove('hidden'); }
+    if(e.target.closest('[data-modal-close]') || e.target.hasAttribute('data-modal-root')){
+      var root = e.target.closest('.modal-ov');
+      if(root) root.classList.add('hidden');
+    }
+    var tg = e.target.closest('[data-toast]');
+    if(tg){ toast(tg.dataset.toast, tg.dataset.toastKind); }
+
+    // Tabs
+    var tb = e.target.closest('.tab-btn');
+    if(tb){
+      tb.parentElement.querySelectorAll('.tab-btn').forEach(function(x){ x.classList.remove('active'); x.setAttribute('aria-selected','false'); });
+      tb.classList.add('active'); tb.setAttribute('aria-selected','true');
+    }
+    var sg = e.target.closest('.seg-btn');
+    if(sg){ sg.parentElement.querySelectorAll('.seg-btn').forEach(function(x){ x.setAttribute('aria-pressed','false'); }); sg.setAttribute('aria-pressed','true'); }
+    var sl = e.target.closest('.settings-link');
+    if(sl){ sl.parentElement.querySelectorAll('.settings-link').forEach(function(x){ x.classList.remove('active'); }); sl.classList.add('active'); }
+  });
+
+  function toast(msg, kind){
+    var el = document.createElement('div');
+    el.className = 'toast' + (kind ? ' ' + kind : '');
+    el.textContent = msg;
+    document.getElementById('toastHost').appendChild(el);
+    setTimeout(function(){ el.remove(); }, 3200);
+  }
+
+  // Theme toggle: light / dark / accent
+  var themeBtns = document.querySelectorAll('[data-theme-btn]');
+  function setTheme(t, save){
+    document.documentElement.setAttribute('data-theme', t);
+    themeBtns.forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.themeBtn === t); });
+    if(save){ try{ localStorage.setItem('ledger-theme', t); }catch(e){} }
+  }
+  themeBtns.forEach(function(b){ b.onclick = function(){ setTheme(b.dataset.themeBtn, true); }; });
+  try{ var saved = localStorage.getItem('ledger-theme'); if(saved) setTheme(saved, false); }catch(e){}
+
+  var schemeBtns = document.querySelectorAll('[data-scheme-btn]');
+  function setScheme(k, save){
+    document.documentElement.setAttribute('data-scheme', k);
+    schemeBtns.forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.schemeBtn === k); });
+    if(save){ try{ localStorage.setItem('ledger-scheme', k); }catch(e){} }
+  }
+  schemeBtns.forEach(function(b){ b.onclick = function(){ setScheme(b.dataset.schemeBtn, true); }; });
+  try{ var savedS = localStorage.getItem('ledger-scheme'); if(savedS) setScheme(savedS, false); else setScheme('carbon', false); }catch(e){ setScheme('carbon', false); }
+
+  render();
+})();
+</script>
+</body>
+</html>

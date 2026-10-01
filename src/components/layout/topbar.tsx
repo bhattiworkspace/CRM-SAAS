@@ -5,7 +5,6 @@ import { Menu, Search, Bell, Plus, Check } from 'lucide-react';
 import { OrgSwitcher, OrganizationOption } from './org-switcher';
 import { UserMenu } from './user-menu';
 import { useRouter } from 'next/navigation';
-
 import { ThemeToggle } from './theme-toggle';
 
 interface TopbarProps {
@@ -69,86 +68,81 @@ export function Topbar({ onToggleMobileMenu, context, availableOrgs }: TopbarPro
   };
 
   return (
-    <header className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 flex items-center justify-between sticky top-0 z-20 shadow-2xs">
-      <div className="flex items-center gap-3">
-        {/* Mobile Menu Trigger */}
+    <header className="sticky top-0 z-20 bg-tbar text-tbarInk border-b border-tbarLine" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+      <div className="h-14 px-4 flex items-center gap-3">
         <button
           onClick={onToggleMobileMenu}
-          className="lg:hidden p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-md focus:outline-none"
+          className="lg:hidden p-1.5 -ml-1.5 text-mute hover:text-ink focus:outline-none"
+          aria-label="Open menu"
         >
-          <Menu className="h-5 w-5" />
+          <Menu className="ic" />
         </button>
 
-        {/* Organization Switcher */}
         <OrgSwitcher currentOrg={context.organization} availableOrgs={availableOrgs} />
 
-        {/* Quick Action Button */}
-        <button
-          onClick={() => router.push('/leads?create=true')}
-          className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-semibold rounded-md border border-brand-200 transition-colors"
-        >
-          <Plus className="h-3.5 w-3.5" />
-          <span>New Lead</span>
-        </button>
-      </div>
-
-      {/* Global Search Bar */}
-      <form onSubmit={handleSearchSubmit} className="hidden md:flex items-center flex-1 max-w-xs mx-4">
-        <div className="relative w-full">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
+        {/* Global Search */}
+        <form onSubmit={handleSearchSubmit} className="relative hidden sm:block flex-1 max-w-sm ml-1">
+          <Search className="ic absolute left-2.5 top-1/2 -translate-y-1/2 text-mute" />
           <input
             type="search"
-            placeholder="Search leads, companies, deals..."
+            placeholder="Search leads, contacts, deals..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200 rounded-md pl-9 pr-3 py-1.5 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:brand-500 focus:bg-white transition-all shadow-2xs"
+            className="input pl-8 w-full"
           />
-        </div>
-      </form>
+        </form>
 
-      {/* Right Controls */}
-      <div className="flex items-center gap-3">
+        <span className="flex-1 sm:hidden"></span>
+
         <ThemeToggle />
-        
-        {/* Notification Bell */}
+
+        {/* Notifications */}
         <div className="relative">
           <button
             onClick={() => setShowNotifications(!showNotifications)}
-            className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-full relative transition-colors focus:outline-none"
-            title="Notifications"
+            className="relative p-1.5 text-mute hover:text-ink"
+            aria-label="Notifications"
           >
-            <Bell className="h-4 w-4" />
+            <Bell className="ic" />
             {unreadCount > 0 && (
-              <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-brand-600 ring-2 ring-white" />
+              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-down text-white text-[10px] grid place-items-center">
+                {unreadCount}
+              </span>
             )}
           </button>
 
           {showNotifications && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
-              <div className="absolute right-0 mt-2 w-80 rounded-md bg-white border border-slate-200 shadow-xl py-2 z-50 text-xs animate-in zoom-in-95">
-                <div className="px-3 py-1.5 border-b border-slate-100 flex items-center justify-between font-semibold text-slate-800">
-                  <span>Notifications</span>
-                  <div className="flex items-center gap-2">
-                    {unreadCount > 0 && (
-                      <span className="text-[10px] text-brand-600 bg-brand-50 px-1.5 py-0.5 rounded">{unreadCount} New</span>
-                    )}
-                    <button onClick={markAllRead} className="text-[10px] text-slate-500 hover:text-brand-600 flex items-center gap-1"><Check className="h-3 w-3"/> Mark all read</button>
-                  </div>
+              <div className="menu w-72 z-50">
+                <div className="px-2 py-1 flex items-center justify-between">
+                  <span className="text-mute text-xs">Notifications</span>
+                  {unreadCount > 0 && (
+                    <button onClick={markAllRead} className="text-[10px] text-mute hover:text-acc flex items-center gap-1">
+                      <Check className="w-3 h-3" /> Mark all read
+                    </button>
+                  )}
                 </div>
-                <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto">
+                <hr className="border-line my-1" />
+                <div className="max-h-64 overflow-y-auto">
                   {notifications.length === 0 ? (
-                    <div className="p-4 text-center text-slate-500">No notifications</div>
+                    <div className="p-4 text-center text-mute text-xs">No notifications</div>
                   ) : (
                     notifications.map(notif => (
-                      <div 
-                        key={notif.id} 
-                        className={`p-3 transition-colors cursor-pointer ${notif.isRead ? 'hover:bg-slate-50 opacity-70' : 'bg-brand-50/30 hover:bg-brand-50/50 border-l-2 border-brand-500'}`}
-                        onClick={() => !notif.isRead && markAsRead([notif.id])}
+                      <div
+                        key={notif.id}
+                        className={`menu-item ${notif.isRead ? 'opacity-70' : 'font-medium'}`}
+                        onClick={() => {
+                          if (!notif.isRead) markAsRead([notif.id]);
+                          if (notif.link) router.push(notif.link);
+                          setShowNotifications(false);
+                        }}
                       >
-                        <p className={`font-semibold ${notif.isRead ? 'text-slate-700' : 'text-slate-900'}`}>{notif.title}</p>
-                        <p className="text-slate-500 mt-0.5">{notif.message}</p>
-                        <span className="text-[10px] text-slate-400 mt-1 block">{new Date(notif.createdAt).toLocaleString()}</span>
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${notif.isRead ? 'bg-line' : 'bg-gold'}`}></span>
+                        <div className="truncate">
+                          <p className="truncate text-ink">{notif.title}</p>
+                          <p className="text-[10px] text-mute mt-0.5">{new Date(notif.createdAt).toLocaleDateString()}</p>
+                        </div>
                       </div>
                     ))
                   )}
@@ -158,7 +152,15 @@ export function Topbar({ onToggleMobileMenu, context, availableOrgs }: TopbarPro
           )}
         </div>
 
-        {/* User Profile Menu */}
+        {/* Quick Action */}
+        <button
+          onClick={() => router.push('/leads/new')}
+          className="btn-primary hidden sm:inline-flex"
+        >
+          <Plus className="ic" /> New lead
+        </button>
+
+        {/* Profile Menu */}
         <UserMenu user={context.user} roleName={context.role.name} />
       </div>
     </header>

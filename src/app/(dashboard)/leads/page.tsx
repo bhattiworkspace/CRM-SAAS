@@ -1,14 +1,10 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { UserPlus, Search, ArrowRightLeft, Plus, RefreshCw, CheckCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Modal } from '@/components/ui/modal';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Plus, RefreshCw, Upload, Search } from 'lucide-react';
 import { updateLeadStatusAction } from '@/app/actions/leads';
+import { Modal } from '@/components/ui/modal';
 
 interface LeadItem {
   id: string;
@@ -32,67 +28,20 @@ interface LeadItem {
   }>;
 }
 
-
 export default function LeadsPage() {
   const [leads, setLeads] = useState<LeadItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const searchParamsHook = require('next/navigation').useSearchParams();
-  const router = require('next/navigation').useRouter();
+  const searchParamsHook = useSearchParams();
+  const router = useRouter();
+  
   const initialSearch = searchParamsHook ? searchParamsHook.get('search') || '' : '';
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [currency, setCurrency] = useState('$');
 
-  // Import State
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setIsImporting(true);
-    try {
-      const text = await file.text();
-      const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-      
-      const leads = lines.slice(1).map(line => {
-        const values = line.split(',').map(v => v.trim());
-        const row: any = {};
-        headers.forEach((h, i) => {
-          if (h.includes('first')) row.firstName = values[i];
-          else if (h.includes('last')) row.lastName = values[i];
-          else if (h.includes('email')) row.email = values[i];
-          else if (h.includes('phone')) row.phone = values[i];
-          else if (h.includes('company')) row.companyName = values[i];
-          else if (h.includes('title')) row.title = values[i];
-        });
-        return row;
-      }).filter(r => r.firstName && r.lastName);
-
-      const res = await fetch('/api/leads/import', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ leads })
-      });
-      const data = await res.json();
-      
-      if (data.success) {
-        alert(`Imported ${data.imported} leads. Duplicates skipped: ${data.duplicates}. Errors: ${data.errors}.`);
-        setIsImportOpen(false);
-        fetchLeads();
-      } else {
-        alert(data.error || 'Import failed');
-      }
-    } catch (err) {
-      alert('Error parsing or importing CSV');
-    } finally {
-      setIsImporting(false);
-      if (e.target) e.target.value = '';
-    }
-  };
 
   const fetchLeads = useCallback(async () => {
     setLoading(true);
@@ -127,223 +76,206 @@ export default function LeadsPage() {
   const updateLeadStatus = async (leadId: string, newStatus: string) => {
     try {
       await updateLeadStatusAction(leadId, newStatus);
-      fetchLeads(); // update local state immediately
+      fetchLeads();
     } catch (err) {
       alert('Error updating status');
     }
   };
 
-  const isToday = (dateString: string | null) => {
-    if (!dateString) return false;
-    const date = new Date(dateString);
-    const today = new Date();
-    return date.getDate() === today.getDate() &&
-      date.getMonth() === today.getMonth() &&
-      date.getFullYear() === today.getFullYear();
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    try {
+      const text = await file.text();
+      const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+      
+      const importedLeads = lines.slice(1).map(line => {
+        const values = line.split(',').map(v => v.trim());
+        const row: any = {};
+        headers.forEach((h, i) => {
+          if (h.includes('first')) row.firstName = values[i];
+          else if (h.includes('last')) row.lastName = values[i];
+          else if (h.includes('email')) row.email = values[i];
+          else if (h.includes('phone')) row.phone = values[i];
+          else if (h.includes('company')) row.companyName = values[i];
+          else if (h.includes('title')) row.title = values[i];
+        });
+        return row;
+      }).filter(r => r.firstName && r.lastName);
+
+      const res = await fetch('/api/leads/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ leads: importedLeads })
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        alert(`Imported ${data.imported} leads. Duplicates skipped: ${data.duplicates}.`);
+        setIsImportOpen(false);
+        fetchLeads();
+      } else {
+        alert(data.error || 'Import failed');
+      }
+    } catch (err) {
+      alert('Error parsing or importing CSV');
+    } finally {
+      setIsImporting(false);
+      if (e.target) e.target.value = '';
+    }
   };
 
-  const isTomorrow = (dateString: string | null) => {
-    if (!dateString) return false;
-    const date = new Date(dateString);
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return date.getDate() === tomorrow.getDate() &&
-      date.getMonth() === tomorrow.getMonth() &&
-      date.getFullYear() === tomorrow.getFullYear();
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'NEW': return <span className="badge indigo">New</span>;
+      case 'CONTACTED': return <span className="badge yellow">Contacted</span>;
+      case 'QUALIFIED': return <span className="badge blue">Qualified</span>;
+      case 'PROPOSAL': return <span className="badge blue">Proposal</span>;
+      case 'CLOSED_WON': return <span className="badge green">Won</span>;
+      case 'CLOSED_LOST': return <span className="badge red">Lost</span>;
+      default: return <span className="badge indigo">{status}</span>;
+    }
   };
 
-  const todayLeads = leads.filter(l => l.tasks?.some(t => isToday(t.dueDate)));
-  const tomorrowLeads = leads.filter(l => l.tasks?.some(t => isTomorrow(t.dueDate)));
-
-  const LeadTable = ({ leads: tableLeads }: { leads: LeadItem[] }) => (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Lead Name</TableHead>
-          <TableHead>Company</TableHead>
-          <TableHead>Contact</TableHead>
-          <TableHead>Value</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Priority</TableHead>
-          <TableHead>Source</TableHead>
-          <TableHead>Assignee</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {tableLeads.map((lead) => (
-          <TableRow key={lead.id}>
-            <TableCell className="font-bold text-slate-900">
-              <a href={`/leads/${lead.id}`} className="hover:text-brand-600 hover:underline">
-                {lead.firstName} {lead.lastName}
-              </a>
-              {lead.title && <span className="block text-[10px] font-normal text-slate-500">{lead.title}</span>}
-            </TableCell>
-            <TableCell className="font-semibold text-slate-800">
-              {lead.companyName || '—'}
-            </TableCell>
-            <TableCell className="text-slate-600">
-              {lead.email || lead.phone || '—'}
-            </TableCell>
-            <TableCell className="text-slate-600 font-medium">
-              {lead.estimatedValue ? `${currency}${lead.estimatedValue.toLocaleString()}` : '—'}
-            </TableCell>
-            <TableCell>
-              <select
-                value={lead.status}
-                onChange={(e) => updateLeadStatus(lead.id, e.target.value)}
-                className="text-xs bg-slate-50 border border-slate-200 rounded px-2 py-1 focus:ring-brand-500 focus:border-brand-500"
-              >
-                <option value="NEW">NEW</option>
-                <option value="CONTACTED">CONTACTED</option>
-                <option value="QUALIFIED">QUALIFIED</option>
-                <option value="PROPOSAL">PROPOSAL</option>
-                <option value="CLOSED_WON">CLOSED WON</option>
-                <option value="CLOSED_LOST">CLOSED LOST</option>
-              </select>
-            </TableCell>
-            <TableCell>
-              <Badge
-                variant={
-                  lead.priority === 'URGENT'
-                    ? 'danger'
-                    : lead.priority === 'HIGH'
-                    ? 'warning'
-                    : 'outline'
-                }
-              >
-                {lead.priority}
-              </Badge>
-            </TableCell>
-            <TableCell className="text-slate-500 text-[11px]">{lead.source}</TableCell>
-            <TableCell className="text-slate-700 font-medium">{lead.owner?.name || 'Unassigned'}</TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  );
+  const getPriorityBadge = (priority: string) => {
+    switch (priority) {
+      case 'HIGH':
+      case 'URGENT': return <span className="badge red">{priority}</span>;
+      case 'MEDIUM': return <span className="badge yellow">Medium</span>;
+      case 'LOW': return <span className="badge green">Low</span>;
+      default: return <span className="badge indigo">{priority}</span>;
+    }
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
+    <section aria-labelledby="pt">
+      <div className="flex items-center justify-between flex-wrap gap-2 mb-1">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-            <UserPlus className="h-6 w-6 text-brand-600" /> Leads Directory
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            Manage potential business leads and convert qualified prospects
-          </p>
+          <h1 id="pt" className="font-head font-semibold text-3xl">Leads</h1>
+          <p className="text-mute">Track every lead from first touch to close.</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => setIsImportOpen(true)} className="gap-2">
-            <UserPlus className="h-4 w-4" /> Import CSV
-          </Button>
-          <Button onClick={() => router.push('/leads/new')} className="gap-2">
-            <Plus className="h-4 w-4" /> Add Lead
-          </Button>
+          <button className="btn" onClick={() => setIsImportOpen(true)}>
+            <Upload className="ic inline-block mr-1" /> Import CSV
+          </button>
+          <button className="btn-primary" onClick={() => router.push('/leads/new')}>
+            <Plus className="ic" /> New lead
+          </button>
         </div>
       </div>
 
-      {/* Filter & Search Controls */}
-      <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
-          {['ALL', 'NEW', 'CONTACTED', 'QUALIFIED', 'CONVERTED'].map((st) => (
-            <button
-              key={st}
-              onClick={() => setStatusFilter(st)}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
-                statusFilter === st
-                  ? 'bg-brand-600 text-white shadow-2xs'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              {st}
-            </button>
-          ))}
-        </div>
-
-        <div className="relative w-full sm:w-64">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
-          <input
-            type="search"
-            placeholder="Filter leads..."
+      <div className="flex items-center gap-2 flex-wrap my-4">
+        <select 
+          className="input w-auto min-w-[140px]" 
+          value={statusFilter} 
+          onChange={(e) => setStatusFilter(e.target.value)}
+        >
+          <option value="ALL">All statuses</option>
+          <option value="NEW">New</option>
+          <option value="CONTACTED">Contacted</option>
+          <option value="QUALIFIED">Qualified</option>
+          <option value="PROPOSAL">Proposal</option>
+        </select>
+        
+        <label className="relative flex-1 max-w-sm ml-auto">
+          <Search className="ic absolute left-2.5 top-1/2 -translate-y-1/2 text-mute" />
+          <input 
+            type="search" 
+            placeholder="Search leads..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200 rounded-md pl-9 pr-3 py-1.5 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className="input pl-8 w-full"
           />
-        </div>
+        </label>
       </div>
 
-      {/* Leads Data Table */}
-      {loading ? (
-        <div className="bg-white border border-slate-200 rounded-lg p-12 text-center text-xs text-slate-500 flex flex-col items-center gap-2">
-          <RefreshCw className="h-5 w-5 animate-spin text-brand-600" />
-          <span>Loading leads directory...</span>
-        </div>
-      ) : error ? (
-        <div className="bg-rose-50 border border-rose-200 rounded-lg p-6 text-center text-xs text-rose-700 font-medium">
-          {error}
-        </div>
-      ) : leads.length === 0 ? (
-        <div className="bg-white border border-slate-200 rounded-lg p-12 text-center text-xs text-slate-500 space-y-3">
-          <UserPlus className="h-8 w-8 text-slate-300 mx-auto" />
-          <p className="font-semibold text-slate-700">No leads found.</p>
-          <p>Import prospects from Business Finder or create a lead manually to get started.</p>
-        </div>
-      ) : (
-        <div className="space-y-8">
-          {/* Today's Follow up */}
-          {todayLeads.length > 0 && (
-            <div>
-              <h2 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-rose-500"></span>
-                Today's Follow up
-              </h2>
-              <LeadTable leads={todayLeads} />
-            </div>
-          )}
+      <div className="panel p-0 overflow-x-auto">
+        <table className="w-full min-w-[720px] text-left">
+          <caption className="sr-only">Lead list</caption>
+          <thead>
+            <tr className="text-mute text-xs font-mono uppercase tracking-wide">
+              <th className="th">Lead</th>
+              <th className="th">Company</th>
+              <th className="th">Status</th>
+              <th className="th">Priority</th>
+              <th className="th">Value</th>
+              <th className="th">Owner</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan={6} className="td text-center py-10">
+                  <RefreshCw className="ic animate-spin mx-auto text-mute mb-2" />
+                  <span className="text-mute">Loading leads...</span>
+                </td>
+              </tr>
+            ) : error ? (
+              <tr><td colSpan={6} className="td text-center py-10 text-down">{error}</td></tr>
+            ) : leads.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="td text-center py-10">
+                  <div className="empty-state">
+                    <b>No leads found.</b>
+                    <span className="text-mute text-sm">Import prospects or create a lead manually to get started.</span>
+                  </div>
+                </td>
+              </tr>
+            ) : (
+              leads.map(lead => (
+                <tr key={lead.id} className="row-lk" onClick={() => router.push(`/leads/${lead.id}`)}>
+                  <td className="td font-medium text-ink">
+                    {lead.firstName} {lead.lastName}
+                    {lead.title && <span className="block text-xs font-normal text-mute">{lead.title}</span>}
+                  </td>
+                  <td className="td">{lead.companyName || '—'}</td>
+                  <td className="td" onClick={(e) => e.stopPropagation()}>
+                    <select
+                      value={lead.status}
+                      onChange={(e) => updateLeadStatus(lead.id, e.target.value)}
+                      className="text-xs bg-transparent border border-line rounded px-1.5 py-0.5 hover:border-gold outline-none focus:border-gold cursor-pointer"
+                    >
+                      <option value="NEW">New</option>
+                      <option value="CONTACTED">Contacted</option>
+                      <option value="QUALIFIED">Qualified</option>
+                      <option value="PROPOSAL">Proposal</option>
+                      <option value="CLOSED_WON">Closed Won</option>
+                      <option value="CLOSED_LOST">Closed Lost</option>
+                    </select>
+                  </td>
+                  <td className="td">{getPriorityBadge(lead.priority)}</td>
+                  <td className="td">{lead.estimatedValue ? `${currency}${lead.estimatedValue.toLocaleString()}` : '—'}</td>
+                  <td className="td">{lead.owner?.name || '—'}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
 
-          {/* Tomorrow's Follow up */}
-          {tomorrowLeads.length > 0 && (
-            <div>
-              <h2 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-amber-500"></span>
-                Tomorrow's Follow up
-              </h2>
-              <LeadTable leads={tomorrowLeads} />
-            </div>
-          )}
-
-          {/* All Leads */}
-          <div>
-            <h2 className="text-lg font-bold text-slate-800 mb-3">All Leads</h2>
-            <LeadTable leads={leads} />
-          </div>
-        </div>
-      )}
-      {/* Import Modal */}
       <Modal isOpen={isImportOpen} onClose={() => setIsImportOpen(false)} title="Import Leads via CSV">
         <div className="space-y-4">
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-mute">
             Upload a CSV file with columns like: <strong>firstName, lastName, email, phone, companyName, title</strong>.
           </p>
-          <div className="border-2 border-dashed border-slate-300 rounded-md p-8 text-center">
+          <div className="border-2 border-dashed border-line rounded p-8 text-center bg-surf2">
             <input 
               type="file" 
               accept=".csv" 
               onChange={handleFileUpload} 
               disabled={isImporting}
-              className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 cursor-pointer"
+              className="block w-full text-sm text-mute file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-acc file:text-bg hover:file:opacity-90 cursor-pointer"
             />
-            {isImporting && <p className="mt-4 text-xs text-brand-600 font-semibold animate-pulse">Processing import...</p>}
+            {isImporting && <p className="mt-4 text-xs text-acc font-semibold animate-pulse">Processing import...</p>}
           </div>
-          <div className="pt-4 flex justify-end gap-2 border-t border-slate-100">
-            <Button type="button" variant="outline" onClick={() => setIsImportOpen(false)}>
-              Cancel
-            </Button>
+          <div className="pt-4 flex justify-end gap-2 border-t border-line">
+            <button type="button" className="btn" onClick={() => setIsImportOpen(false)}>Cancel</button>
           </div>
         </div>
       </Modal>
-    </div>
+    </section>
   );
 }

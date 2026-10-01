@@ -22,9 +22,10 @@ export function AppShell({ context, availableOrgs, disabledModules = [], childre
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex text-slate-900 font-sans antialiased">
+    <div className="min-h-screen md:flex bg-bg text-ink font-body antialiased transition-colors duration-200">
+      
       {/* Desktop Sidebar */}
-      <div className="hidden lg:block">
+      <div className="hidden md:block">
         <Sidebar
           isCollapsed={isCollapsed}
           onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
@@ -34,11 +35,11 @@ export function AppShell({ context, availableOrgs, disabledModules = [], childre
         />
       </div>
 
-      {/* Mobile Drawer Sidebar */}
+      {/* Mobile Drawer Overlay */}
       {isMobileOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 flex">
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs" onClick={() => setIsMobileOpen(false)} />
-          <div className="relative w-64 bg-slate-900 z-10 flex flex-col">
+        <div className="md:hidden fixed inset-0 z-40 flex">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsMobileOpen(false)} />
+          <div className="relative w-[230px] z-50 flex flex-col bg-sbar">
             <Sidebar
               isCollapsed={false}
               onToggleCollapse={() => setIsMobileOpen(false)}
@@ -51,14 +52,14 @@ export function AppShell({ context, availableOrgs, disabledModules = [], childre
       )}
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-screen">
+      <div className="flex-1 flex flex-col min-w-0">
         <Topbar
           onToggleMobileMenu={() => setIsMobileOpen(true)}
           context={context}
           availableOrgs={availableOrgs}
         />
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+        <main id="canvas" className="flex-1 p-4 md:p-6 max-w-[1280px] w-full mx-auto relative">
           {children}
         </main>
       </div>

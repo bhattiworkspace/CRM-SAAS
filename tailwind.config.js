@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: 'class',
+  darkMode: ['class', '[data-theme="dark"]'],
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -9,27 +9,31 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        brand: {
-          50: 'var(--brand-50)',
-          100: 'var(--brand-100)',
-          200: 'var(--brand-200)',
-          300: 'var(--brand-300)',
-          400: 'var(--brand-400)',
-          500: 'var(--brand-500)',
-          600: 'var(--brand-600)',
-          700: 'var(--brand-700)',
-          800: 'var(--brand-800)',
-          900: 'var(--brand-900)',
-          950: 'var(--brand-950)',
-        },
-        sidebar: {
-          bg: 'var(--sidebar-bg)',
-          fg: 'var(--sidebar-fg)',
-          hover: 'var(--sidebar-hover)',
-          active: 'var(--sidebar-active)',
-          textActive: 'var(--sidebar-text-active)',
-          border: 'var(--sidebar-border)',
-        }
+        bg: 'var(--bg)',
+        surf: 'var(--surf)',
+        surf2: 'var(--surf2)',
+        ink: 'var(--ink)',
+        mute: 'var(--mute)',
+        line: 'var(--line)',
+        acc: 'var(--acc)',
+        gold: 'var(--gold)',
+        up: 'var(--up)',
+        down: 'var(--down)',
+        sbar: 'var(--sbar)',
+        sbarInk: 'var(--sbar-ink)',
+        sbarMute: 'var(--sbar-mute)',
+        sbarLine: 'var(--sbar-line)',
+        tbar: 'var(--tbar)',
+        tbarInk: 'var(--tbar-ink)',
+        tbarLine: 'var(--tbar-line)',
+      },
+      fontFamily: {
+        head: ['"Barlow Condensed"', 'sans-serif'],
+        body: ['Manrope', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'monospace'],
+      },
+      borderRadius: {
+        DEFAULT: '3px',
       },
     },
   },

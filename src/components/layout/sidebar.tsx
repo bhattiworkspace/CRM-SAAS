@@ -4,24 +4,10 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  LayoutDashboard,
-  UserPlus,
-  Users,
-  Building2,
-  KanbanSquare,
-  Activity,
-  CheckSquare,
-  Search,
-  BarChart3,
-  ShieldCheck,
-  Settings,
-  ChevronLeft,
-  ChevronRight,
-  MessageSquare,
-  GitBranch,
-  Zap,
-  Sparkles,
-  Briefcase
+  LayoutDashboard, UserPlus, Users, Building2, Activity,
+  CheckSquare, Search, BarChart3, ShieldCheck, Settings,
+  ChevronLeft, ChevronRight, MessageSquare, GitBranch, Zap,
+  Sparkles, Briefcase
 } from 'lucide-react';
 import { appConfig } from '@/config/app.config';
 import { clsx } from 'clsx';
@@ -36,7 +22,6 @@ interface SidebarProps {
 
 export function Sidebar({ isCollapsed, onToggleCollapse, disabledModules = [], roleName }: SidebarProps) {
   const pathname = usePathname();
-
   const isSalesRep = roleName === 'Sales Representative';
 
   type NavItem = {
@@ -44,11 +29,12 @@ export function Sidebar({ isCollapsed, onToggleCollapse, disabledModules = [], r
     href?: string;
     icon?: React.ElementType;
     badge?: string;
-    divider?: boolean;
+    section?: string;
     moduleCode?: string;
   };
 
   const rawNavigationItems: NavItem[] = [
+    { section: 'Workspace' },
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, moduleCode: 'DASHBOARD' },
     { name: 'Leads', href: '/leads', icon: UserPlus, moduleCode: 'LEADS' },
     { name: 'Contacts', href: '/contacts', icon: Users, moduleCode: 'CONTACTS' },
@@ -56,61 +42,46 @@ export function Sidebar({ isCollapsed, onToggleCollapse, disabledModules = [], r
     { name: 'Deals', href: '/deals', icon: Briefcase, moduleCode: 'DEALS' },
     { name: 'Activities', href: '/activities', icon: Activity, moduleCode: 'ACTIVITIES' },
     { name: 'Tasks', href: '/tasks', icon: CheckSquare, moduleCode: 'TASKS' },
-    { divider: true },
+    { section: 'Automation' },
     { name: 'Communications', href: '/communications', icon: MessageSquare, moduleCode: 'COMMUNICATIONS' },
-    { name: 'Sequences', href: '/sequences', icon: GitBranch, moduleCode: 'SEQUENCES' },
-    { divider: true },
-    { name: 'Automations', href: '/workflows', icon: Zap, moduleCode: 'AUTOMATION' },
-    { name: 'AI Assistant', href: '/ai', icon: Sparkles, moduleCode: 'AI' },
-    { divider: true },
+    { name: 'Sequences', href: '/sequences', icon: GitBranch, badge: 'PRO', moduleCode: 'SEQUENCES' },
+    { name: 'Workflows', href: '/workflows', icon: Zap, badge: 'PRO', moduleCode: 'AUTOMATION' },
+    { name: 'AI Assistant', href: '/ai', icon: Sparkles, badge: 'PRO', moduleCode: 'AI' },
+    { section: 'Insights' },
     { name: 'Business Finder', href: '/business-finder', icon: Search, badge: 'PRO', moduleCode: 'BUSINESS_FINDER_PRO' },
     { name: 'Reports', href: '/reports', icon: BarChart3, moduleCode: 'REPORTS' },
-    { divider: true },
     { name: 'Audit Logs', href: '/audit-logs', icon: ShieldCheck, moduleCode: 'AUDIT_LOGS' }
   ].filter(item => !item.moduleCode || !disabledModules.includes(item.moduleCode));
 
-  // Clean up dividers (remove consecutive, leading, trailing)
+  // Clean sections
   const navigationItems = rawNavigationItems.filter((item, index, arr) => {
-    if (!item.divider) return true;
-    if (index === 0 || index === arr.length - 1) return false;
-    if (arr[index - 1].divider) return false;
+    if (!item.section) return true;
+    if (index === arr.length - 1) return false;
+    if (arr[index + 1].section) return false;
     return true;
   });
 
   return (
     <aside
       className={clsx(
-        'bg-slate-900 text-slate-300 flex flex-col border-r border-slate-800 transition-all duration-300 z-30 shrink-0 select-none h-screen sticky top-0',
-        isCollapsed ? 'w-16' : 'w-64'
+        'bg-sbar text-sbarInk border-r border-sbarLine flex flex-col h-screen sticky top-0 transition-all duration-200 z-40 shrink-0 select-none',
+        isCollapsed ? 'w-[60px] mini' : 'w-[230px]'
       )}
     >
-      {/* Brand Header */}
-      <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800">
-        <Link href="/dashboard" className="flex items-center gap-3 overflow-hidden">
-          <div className="h-9 w-9 rounded-lg bg-brand-600 flex items-center justify-center text-white font-bold text-lg shadow-md shrink-0">
-            {appConfig.appName[0]}
-          </div>
-          {!isCollapsed && (
-            <div className="flex flex-col">
-              <span className="font-bold text-white text-base tracking-tight">{appConfig.appName}</span>
-              <span className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">B2B SaaS</span>
-            </div>
-          )}
-        </Link>
-        <button
-          onClick={onToggleCollapse}
-          className="text-slate-400 hover:text-white p-1 rounded-md hover:bg-slate-800 transition-colors focus:outline-none"
-          title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
-        >
-          {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-        </button>
+      <div className="px-5 pt-6 pb-4 flex items-center gap-2">
+        <span id="logo-dot" className="w-2 h-2 bg-gold rounded-full shrink-0"></span>
+        {!isCollapsed && <span className="font-head font-bold text-xl uppercase tracking-[.12em] truncate">{appConfig.appName}</span>}
       </div>
 
-      {/* Navigation Links */}
-      <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto">
+      <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto" aria-label="Main navigation">
         {navigationItems.map((item, index) => {
-          if (item.divider) {
-            return <div key={`div-${index}`} className="my-2 border-t border-slate-800" />;
+          if (item.section) {
+            if (isCollapsed) return <div key={`sec-${index}`} className="my-2" />;
+            return (
+              <p key={`sec-${index}`} className="px-3 pt-4 pb-1 text-[11px] font-mono uppercase tracking-wider text-sbarMute">
+                {item.section}
+              </p>
+            );
           }
 
           const Icon = item.icon!;
@@ -120,50 +91,36 @@ export function Sidebar({ isCollapsed, onToggleCollapse, disabledModules = [], r
             <Link
               key={item.name}
               href={item.href!}
-              className={clsx(
-                'flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors group relative',
-                isActive
-                  ? 'bg-brand-600 text-white font-semibold shadow-xs'
-                  : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/80'
-              )}
+              className={clsx('nav-link group', isActive && 'active', isCollapsed && 'justify-center')}
               title={isCollapsed ? item.name : undefined}
             >
-              <Icon className={clsx('h-4 w-4 shrink-0', isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-200')} />
-              {!isCollapsed && (
-                <span className="truncate flex-1">{item.name}</span>
-              )}
-              {!isCollapsed && item.badge && (
-                <span className="bg-brand-500/20 text-brand-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-brand-500/30">
-                  {item.badge}
-                </span>
-              )}
+              <Icon className={clsx('ic', isActive ? 'text-gold' : 'group-hover:text-gold')} />
+              {!isCollapsed && <span className="truncate flex-1">{item.name}</span>}
+              {!isCollapsed && item.badge && <span className="pro-badge">{item.badge}</span>}
             </Link>
           );
         })}
+
+        {!isSalesRep && (
+          <>
+            {!isCollapsed && <p className="px-3 pt-4 pb-1 text-[11px] font-mono uppercase tracking-wider text-sbarMute">Settings</p>}
+            <Link
+              href="/settings"
+              className={clsx('nav-link group', pathname?.startsWith('/settings') && 'active', isCollapsed && 'justify-center')}
+              title={isCollapsed ? 'Settings' : undefined}
+            >
+              <Settings className={clsx('ic', pathname?.startsWith('/settings') ? 'text-gold' : 'group-hover:text-gold')} />
+              {!isCollapsed && <span className="truncate flex-1">Settings</span>}
+            </Link>
+          </>
+        )}
       </nav>
 
-      {/* Settings (Fixed at bottom) - Hidden for Sales Representatives */}
-      {!isSalesRep && (
-        <div className="px-2 py-3 border-t border-slate-800 space-y-1">
-          <Link
-            href="/settings"
-            className={clsx(
-              'flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors group relative',
-              pathname?.startsWith('/settings')
-                ? 'bg-brand-600 text-white font-semibold shadow-xs'
-                : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/80'
-            )}
-            title={isCollapsed ? 'Settings' : undefined}
-          >
-            <Settings className={clsx('h-4 w-4 shrink-0', pathname?.startsWith('/settings') ? 'text-white' : 'text-slate-400 group-hover:text-slate-200')} />
-            {!isCollapsed && <span className="truncate flex-1">Settings</span>}
-          </Link>
-        </div>
-      )}
-
-      {/* Sidebar Footer */}
-      <div className="p-3 border-t border-slate-800 text-xs text-slate-500 text-center">
-        {!isCollapsed && <span>{appConfig.appName} v1.0 &bull; Enterprise</span>}
+      <div className="px-3 py-3 border-t border-sbarLine">
+        <button onClick={onToggleCollapse} className={clsx('nav-link w-full text-sbarMute', isCollapsed && 'justify-center')} aria-label="Collapse sidebar">
+          {isCollapsed ? <ChevronRight className="ic" /> : <ChevronLeft className="ic" />}
+          {!isCollapsed && <span>Collapse</span>}
+        </button>
       </div>
     </aside>
   );
