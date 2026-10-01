@@ -30,6 +30,7 @@ export function AppShell({ context, availableOrgs, disabledModules = [], childre
           onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
           userPermissions={context.permissions}
           disabledModules={disabledModules}
+          roleName={context.role.name}
         />
       </div>
 
@@ -43,6 +44,7 @@ export function AppShell({ context, availableOrgs, disabledModules = [], childre
               onToggleCollapse={() => setIsMobileOpen(false)}
               userPermissions={context.permissions}
               disabledModules={disabledModules}
+              roleName={context.role.name}
             />
           </div>
         </div>

@@ -31,10 +31,13 @@ interface SidebarProps {
   onToggleCollapse: () => void;
   userPermissions?: string[];
   disabledModules?: string[];
+  roleName?: string;
 }
 
-export function Sidebar({ isCollapsed, onToggleCollapse, disabledModules = [] }: SidebarProps) {
+export function Sidebar({ isCollapsed, onToggleCollapse, disabledModules = [], roleName }: SidebarProps) {
   const pathname = usePathname();
+
+  const isSalesRep = roleName === 'Sales Representative';
 
   type NavItem = {
     name?: string;
@@ -139,26 +142,28 @@ export function Sidebar({ isCollapsed, onToggleCollapse, disabledModules = [] }:
         })}
       </nav>
 
-      {/* Settings (Fixed at bottom) */}
-      <div className="px-2 py-3 border-t border-slate-800 space-y-1">
-        <Link
-          href="/settings"
-          className={clsx(
-            'flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors group relative',
-            pathname?.startsWith('/settings')
-              ? 'bg-brand-600 text-white font-semibold shadow-xs'
-              : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/80'
-          )}
-          title={isCollapsed ? 'Settings' : undefined}
-        >
-          <Settings className={clsx('h-4 w-4 shrink-0', pathname?.startsWith('/settings') ? 'text-white' : 'text-slate-400 group-hover:text-slate-200')} />
-          {!isCollapsed && <span className="truncate flex-1">Settings</span>}
-        </Link>
-      </div>
+      {/* Settings (Fixed at bottom) - Hidden for Sales Representatives */}
+      {!isSalesRep && (
+        <div className="px-2 py-3 border-t border-slate-800 space-y-1">
+          <Link
+            href="/settings"
+            className={clsx(
+              'flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors group relative',
+              pathname?.startsWith('/settings')
+                ? 'bg-brand-600 text-white font-semibold shadow-xs'
+                : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/80'
+            )}
+            title={isCollapsed ? 'Settings' : undefined}
+          >
+            <Settings className={clsx('h-4 w-4 shrink-0', pathname?.startsWith('/settings') ? 'text-white' : 'text-slate-400 group-hover:text-slate-200')} />
+            {!isCollapsed && <span className="truncate flex-1">Settings</span>}
+          </Link>
+        </div>
+      )}
 
       {/* Sidebar Footer */}
       <div className="p-3 border-t border-slate-800 text-xs text-slate-500 text-center">
-        {!isCollapsed && <span>{appConfig.appName} v1.0 • Enterprise</span>}
+        {!isCollapsed && <span>{appConfig.appName} v1.0 &bull; Enterprise</span>}
       </div>
     </aside>
   );
